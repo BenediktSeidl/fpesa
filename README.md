@@ -1,5 +1,13 @@
 # fpesa
 
+## Developing
+
+### Docs
+
+```bash
+sphinx-build doc doc_build
+```
+
 ## requirements
 
 * python3
