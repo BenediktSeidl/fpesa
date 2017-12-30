@@ -2,13 +2,19 @@
 
 ## Developing
 
+### Tests
+
+```bash
+py.test
+```
+
 ### Docs
 
 ```bash
-sphinx-build doc doc_build
+sphinx-build doc doc/_build
 ```
 
-## requirements
+## Functional Requirements
 
 * python3
 * rest endpoint for ingestion of messages
@@ -100,6 +106,12 @@ after a while. #TODO!
     * [+] huge community
     * [+] experience
     * [-] no websockets support
+
+my first thought was to spereate the two restpoints in two single applications.
+but it seems like the rest endpoints ist only a protocoll converter between
+rest and the messagebus. so the rest api does not contain any bussiness logic.
+so it should be possible to build a simple mapper, with a configuration which
+rest endpoints exists and what parameter they take
 
 #### Webapp
 
