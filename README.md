@@ -5,6 +5,8 @@
 ### Tests
 
 ```bash
+rabbitmq-plugins enable rabbitmq_management
+pip install pytest requests
 py.test
 ```
 

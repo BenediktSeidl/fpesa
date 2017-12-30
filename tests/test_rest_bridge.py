@@ -1,30 +1,39 @@
 import json
-import subprocess
 from unittest import TestCase
 
+import requests
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 
 from common import install_test_config
 from fpesa.rest2bus import get_app, Endpoint, FireAndForgetAdapter
 from fpesa.message_bus import get_connection
+from fpesa.config import config
 
 install_test_config()
 
 
 class TestRestBridge(TestCase):
-    def _rabbitmqadmin(self, *command):
-        subprocess.call(('rabbitmqadmin', ) + command)
+    def __rabbitmq_api(
+            self, method, url_part, data={}, status_code_ok=(200, 204)):
+        result = requests.request(
+            method,
+            'http://{}:15672/api/{}'.format(
+                config['rabbitmq']['host'],
+                url_part),
+            json=data,
+            auth=(config['rabbitmq']['user'], config['rabbitmq']['password'])
+        )
+        self.assertIn(result.status_code, status_code_ok)
 
     def setUp(self):
         # completely reset rabbitmq
-        # use http api instead: http://localhost:15672/api/
-        # TODO: add to readme to activate rest api on rabbitmq
-        self._rabbitmqadmin('delete', 'vhost', 'name=tests')
-        self._rabbitmqadmin('declare', 'vhost', 'name=tests')
-        self._rabbitmqadmin(
-            'declare', 'permission', 'vhost=tests',
-            'user=guest', 'configure=.*', 'write=.*', 'read=.*')
+        self.__rabbitmq_api('DELETE', 'vhosts/tests', (404, 204, 200))
+        self.__rabbitmq_api('PUT', 'vhosts/tests')
+        self.__rabbitmq_api(
+            'PUT', '/permissions/tests/guest',
+            {'configure': '.*', 'write': '.*', 'read': '.*'})
+
         self.connection = get_connection()
 
     def get_simple_ff_app(self):
