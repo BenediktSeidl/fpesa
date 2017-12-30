@@ -2,6 +2,29 @@
 
 ## Developing
 
+### Starting all Components
+
+All commands shown in this section show the developing setup. For instructions
+on how to run the project in production see #TODO
+
+When all Components are running you can access the frontend with
+http://127.0.0.1:8888/
+
+#### Frontend
+
+```bash
+cd frontend
+npm install  # only once
+npm run dev
+```
+
+#### Webserver
+
+```bash
+cd dev/nginx
+./run.sh
+```
+
 ### Tests
 
 ```bash

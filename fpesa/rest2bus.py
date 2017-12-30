@@ -136,6 +136,9 @@ class FireAndForgetAdapter(Adapter):
             exchange=self.get_exchange_name(),
             exchange_type='fanout',
         )
+        self.channel.queue_declare(queue='worker', durable=True)
+        self.channel.queue_bind(
+            exchange=self.get_exchange_name(), queue='worker')
 
     def adapt(self, request_data, request_args):
         """
