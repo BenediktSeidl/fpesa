@@ -1,41 +1,14 @@
 import json
-from unittest import TestCase
-
-import requests
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 
-from common import install_test_config
+from common import install_test_config, RabbitMqTestCase
 from fpesa.rest2bus import get_app, Endpoint, FireAndForgetAdapter
-from fpesa.message_bus import get_connection
-from fpesa.config import config
 
 install_test_config()
 
 
-class TestRestBridge(TestCase):
-    def __rabbitmq_api(
-            self, method, url_part, data={}, status_code_ok=(200, 204)):
-        result = requests.request(
-            method,
-            'http://{}:15672/api/{}'.format(
-                config['rabbitmq']['host'],
-                url_part),
-            json=data,
-            auth=(config['rabbitmq']['user'], config['rabbitmq']['password'])
-        )
-        self.assertIn(result.status_code, status_code_ok)
-
-    def setUp(self):
-        # completely reset rabbitmq
-        self.__rabbitmq_api('DELETE', 'vhosts/tests', (404, 204, 200))
-        self.__rabbitmq_api('PUT', 'vhosts/tests')
-        self.__rabbitmq_api(
-            'PUT', '/permissions/tests/guest',
-            {'configure': '.*', 'write': '.*', 'read': '.*'})
-
-        self.connection = get_connection()
-
+class TestRestBridge(RabbitMqTestCase):
     def get_simple_ff_app(self):
         app = get_app([Endpoint(
             '/testing/', 'POST', FireAndForgetAdapter(),
@@ -43,13 +16,6 @@ class TestRestBridge(TestCase):
                 'a': {'type': 'integer'}}, 'additionalProperties': False})])
         c = Client(app, BaseResponse)
         return c
-
-    def _setup_channel(self, exchange):
-        channel = self.connection.channel()
-        channel.queue_declare(queue='worker')
-        channel.exchange_declare(exchange=exchange, exchange_type='fanout')
-        channel.queue_bind(exchange=exchange, queue='worker')
-        return channel
 
     def test_ff_post_with_body(self):
         """ declare rest endpoint, send message, see if message is on bus """

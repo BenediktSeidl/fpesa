@@ -13,4 +13,9 @@ in stdenv.mkDerivation {
     rabbitmq_server
     nodejs-8_x
   ];
+  shellHook =
+    ''
+        echo "${pkgs.nginx}"
+    '';
+
 }

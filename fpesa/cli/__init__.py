@@ -18,6 +18,11 @@ def f_restapi(options):
     )
 
 
+def f_liveupdate(options):
+    from fpesa.live_update import main
+    main(options)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', help='verbose', action='store_true')  # TODO!
@@ -32,6 +37,10 @@ def main():
     p_restapi = subparsers.add_parser(
         'restapi', help='run the rest to rabbitmp mapper')
     p_restapi.set_defaults(func=f_restapi)
+
+    p_liveupdate = subparsers.add_parser(
+        'liveupdate', help='run the websocket live updater')
+    p_liveupdate.set_defaults(func=f_liveupdate)
 
     options = parser.parse_args()
     options.func(options)

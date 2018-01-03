@@ -7,8 +7,10 @@ setup(
     # TODO: package data! default.conf
     install_requires=[
         'werkzeug',
-        'pika',
+        'pika<0.11',
         'jsonschema',
+        'websockets',
+        'aio-pika',
     ],
     entry_points={
         'console_scripts': [
