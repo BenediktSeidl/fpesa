@@ -182,7 +182,6 @@ class RestRabbitmqMapperApp():
                     'description': e.description,
                 }
             }, status=e.code)
-            return e
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
