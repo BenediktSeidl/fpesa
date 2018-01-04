@@ -29,7 +29,8 @@ class RabbitMqTestCase(TestCase):
 
     def setUp(self):
         # completely reset rabbitmq
-        self.__rabbitmq_api('DELETE', 'vhosts/tests', (404, 204, 200))
+        self.__rabbitmq_api(
+            'DELETE', 'vhosts/tests', status_code_ok=(404, 204, 200))
         self.__rabbitmq_api('PUT', 'vhosts/tests')
         self.__rabbitmq_api(
             'PUT', '/permissions/tests/guest',
