@@ -1,11 +1,18 @@
 import json
+from collections import namedtuple
+from unittest import mock
+
+import pika
 from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 
 from common import install_test_config, RabbitMqTestCase
 from fpesa.rest2bus import get_app, Endpoint, FireAndForgetAdapter
+from fpesa.rest2bus import RequestResponseAdapter
 
 install_test_config()
+
+FakeUUID = namedtuple('FakeUUID', ['hex'])
 
 
 class TestRestBridge(RabbitMqTestCase):
@@ -16,6 +23,15 @@ class TestRestBridge(RabbitMqTestCase):
                 'a': {'type': 'integer'}}, 'additionalProperties': False})])
         c = Client(app, BaseResponse)
         return c
+
+    def get_simple_rr_app(self):
+        adapter = RequestResponseAdapter()
+        app = get_app([Endpoint(
+            '/testing/', 'GET', adapter,
+            schema_req_args={'type': 'object', 'properties': {
+                'b': {'type': 'string'}}, 'additionalProperties': False})])
+        c = Client(app, BaseResponse)
+        return c, adapter
 
     def test_ff_post_with_body(self):
         """ declare rest endpoint, send message, see if message is on bus """
@@ -84,3 +100,35 @@ class TestRestBridge(RabbitMqTestCase):
         description = response['error'].pop('description', '')
         self.assertTrue('not found' in description)
         self.assertEqual(response, {'error': {'code': 404}})
+
+    @mock.patch('uuid.uuid4', return_value=FakeUUID('abc'))
+    def test_rr_simple(self, patched):
+        channel = self._setup_channel('/testing/:GET', exchange_type='direct')
+        c, adapter = self.get_simple_rr_app()
+
+        # answer to message, before receiving it, otherwise we would need
+        # threads
+        channel.basic_publish(
+            exchange='RPC',
+            routing_key=adapter.response_queue.method.queue,
+            body=json.dumps({'d': 'e'}),
+            properties=pika.BasicProperties(
+                correlation_id='abc'
+            ),
+        )
+
+        # send request
+        resp = c.get("/testing/?b=c")
+
+        # see if message was sent
+        method, properties, body = channel.basic_get(queue='worker')
+        self.assertEqual(properties.correlation_id, 'abc')
+        self.assertTrue(properties.reply_to.startswith('amq.gen-'))
+        self.assertEqual(
+            json.loads(body.decode()),
+            {'args': {'b': 'c'}, 'data': None}
+        )
+
+        # check rest answer
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(json.loads(resp.data.decode()), {'d': 'e'})

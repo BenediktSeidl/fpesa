@@ -38,9 +38,10 @@ class RabbitMqTestCase(TestCase):
 
         self.connection = get_connection()
 
-    def _setup_channel(self, exchange):
+    def _setup_channel(self, exchange, exchange_type='fanout'):
         channel = self.connection.channel()
         channel.queue_declare(queue='worker', durable=True)
-        channel.exchange_declare(exchange=exchange, exchange_type='fanout')
-        channel.queue_bind(exchange=exchange, queue='worker')
+        channel.exchange_declare(
+            exchange=exchange, exchange_type=exchange_type)
+        channel.queue_bind(exchange=exchange, queue='worker', routing_key='')
         return channel

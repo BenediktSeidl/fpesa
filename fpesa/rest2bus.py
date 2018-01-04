@@ -12,7 +12,10 @@ call :func:`get_app` to get a wsgi app.
 """
 
 import json
+import uuid
+import time
 
+import pika
 import jsonschema
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
@@ -157,13 +160,59 @@ class FireAndForgetAdapter(Adapter):
 
 class RequestResponseAdapter(Adapter):
     """
-    not yet implemented
+    Adapts a Rest-Request to a RabbitMQ message, the response to the Rest-Call
+    with is defined by the response of the RabbitMQ message.
+    To match the request and response on the message bus side, the request's
+    properties includes two keys: `correlation_id` and `reply_to`. The response
+    has to be sent to the exchange `RPC`. The `correlation_id` sent in the
+    request has to be used as `routing_key` when sending the response to the
+    exchange `RPC`. The `correlation_id` of the response holds the same value
+    as the `correlation_id` of the request.
+    The message is delivered to a exchange with type direct named
+    `<path>:<method>`.
     """
     def init(self, endpoint):
         super().init(endpoint)
+        self.channel = get_connection().channel()
+        self.channel.exchange_declare(
+            exchange=self.get_exchange_name(),
+            exchange_type='direct',
+        )
+        self.channel.queue_declare(queue='worker', durable=True)
+        self.channel.queue_bind(
+            exchange=self.get_exchange_name(), queue='worker')
 
-    def adapt(path, body, request_args):
-        pass
+        self.response_channel = get_connection().channel()
+        self.response_channel.exchange_declare(
+            exchange='RPC', exchange_type='direct')
+        self.response_queue = self.response_channel.queue_declare(
+            exclusive=True)
+        self.response_channel.queue_bind(
+            exchange='RPC', queue=self.response_queue.method.queue)
+
+    def adapt(self, request_data, request_args):
+        correlation_id = uuid.uuid4().hex
+        self.channel.basic_publish(
+            exchange=self.get_exchange_name(),
+            routing_key='',
+            body=json.dumps({
+                'data': request_data,
+                'args': request_args,
+            }),
+            properties=pika.BasicProperties(
+                reply_to=self.response_queue.method.queue,
+                correlation_id=correlation_id
+            ),
+        )
+
+        while True:
+            method, properties, body = self.response_channel.basic_get(
+                queue=self.response_queue.method.queue)
+            if properties and properties.correlation_id == correlation_id:
+                break
+            time.sleep(0.01)
+            # TODO: timeout after 1 second
+        return json.loads(body.decode())
 
 
 class RestRabbitmqMapperApp():
