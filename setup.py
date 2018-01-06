@@ -11,6 +11,8 @@ setup(
         'jsonschema',
         'websockets',
         'aio-pika',
+        'sqlalchemy',
+        'psycopg2',
     ],
     entry_points={
         'console_scripts': [

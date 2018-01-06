@@ -28,7 +28,15 @@ cd dev/nginx
 ### Tests
 
 ```bash
+# prepare database
+su - postgres
+psql
+CREATE ROLE fpesa LOGIN PASSWORD 'fpesa';
+CREATE DATABASE fpesa WITH OWNER = fpesa;
+CREATE DATABASE fpesa_test WITH OWNER = fpesa;
+# enable http api of rabbitmq
 rabbitmq-plugins enable rabbitmq_management
+# python test dependencies
 pip install pytest requests
 py.test
 ```
