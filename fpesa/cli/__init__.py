@@ -1,9 +1,8 @@
+import sys
+import logging
 import argparse
 
-
-def f_input(options):
-    print("asd")
-
+import fpesa
 
 def f_restapi(options):
     from fpesa.restapp import get_app
@@ -23,16 +22,19 @@ def f_liveupdate(options):
     main(options)
 
 
-def main():
+def main(args=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', help='verbose', action='store_true')  # TODO!
-    parser.set_defaults(func=parser.print_help)
+    parser.set_defaults(loglevel=[30])
+    parser.add_argument(
+        '-v', help='more verbose',
+        dest='loglevel', const=-10, action='append_const')
+    parser.add_argument(
+        '-q', help='more quiet',
+        dest='loglevel', const=+10, action='append_const')
+
+    parser.set_defaults(func=lambda options: parser.print_help())
 
     subparsers = parser.add_subparsers(help='sub-command help')
-
-    p_input = subparsers.add_parser(
-        'input', help='rest endpoint for ingestion of of messages')
-    p_input.set_defaults(func=f_input)
 
     p_restapi = subparsers.add_parser(
         'restapi', help='run the rest to rabbitmp mapper')
@@ -42,5 +44,13 @@ def main():
         'liveupdate', help='run the websocket live updater')
     p_liveupdate.set_defaults(func=f_liveupdate)
 
-    options = parser.parse_args()
+    if args is None:
+        args = sys.argv
+    options = parser.parse_args(args[1:])
+
+    logging.basicConfig(
+        level=max(10, min(50, sum(options.loglevel))),
+        format="%(asctime)s %(levelname)s :: %(name)s :: %(message)s",
+    )
+    logging.info("starting fpesa version {}".format(fpesa.__version__))
     options.func(options)

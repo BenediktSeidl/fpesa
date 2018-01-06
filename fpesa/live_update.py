@@ -56,7 +56,6 @@ async def consume_messages_from_bus(loop):
 
 
 def main(options):
-    logging.basicConfig(level=logging.INFO)  # TODO: remove
     loop = asyncio.get_event_loop()
     loop.run_until_complete(websockets.serve(liveupdate, '127.0.0.1', 8082))
     loop.run_until_complete(consume_messages_from_bus(loop))
