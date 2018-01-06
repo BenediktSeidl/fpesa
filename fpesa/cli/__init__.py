@@ -4,6 +4,7 @@ import argparse
 
 import fpesa
 
+
 def f_restmapper(options):
     from fpesa.restapp import get_app
     from werkzeug.serving import run_simple
