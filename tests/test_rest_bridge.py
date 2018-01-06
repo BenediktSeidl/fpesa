@@ -7,8 +7,8 @@ from werkzeug.test import Client
 from werkzeug.wrappers import BaseResponse
 
 from common import install_test_config, RabbitMqTestCase
-from fpesa.rest2bus import get_app, Endpoint, FireAndForgetAdapter
-from fpesa.rest2bus import RequestResponseAdapter
+from fpesa.restmapper import get_app, Endpoint, FireAndForgetAdapter
+from fpesa.restmapper import RequestResponseAdapter
 
 install_test_config()
 

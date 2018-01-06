@@ -2,5 +2,5 @@
 API
 ###
 
-.. automodule:: fpesa.rest2bus
+.. automodule:: fpesa.restmapper
    :members:

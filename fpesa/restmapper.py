@@ -21,7 +21,7 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, InternalServerError
 
-from .message_bus import get_connection
+from .rabbitmq import get_connection
 
 
 class Endpoint():

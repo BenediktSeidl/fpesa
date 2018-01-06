@@ -4,7 +4,7 @@ from unittest import TestCase
 import requests
 
 from fpesa.config import config
-from fpesa.message_bus import get_connection
+from fpesa.rabbitmq import get_connection
 
 
 def install_test_config():

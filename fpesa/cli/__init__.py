@@ -4,7 +4,7 @@ import argparse
 
 import fpesa
 
-def f_restapi(options):
+def f_restmapper(options):
     from fpesa.restapp import get_app
     from werkzeug.serving import run_simple
     from logging import basicConfig, DEBUG
@@ -18,7 +18,7 @@ def f_restapi(options):
 
 
 def f_liveupdate(options):
-    from fpesa.live_update import main
+    from fpesa.liveupdate import main
     main(options)
 
 
@@ -36,9 +36,9 @@ def main(args=None):
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
-    p_restapi = subparsers.add_parser(
-        'restapi', help='run the rest to rabbitmp mapper')
-    p_restapi.set_defaults(func=f_restapi)
+    p_restmapper = subparsers.add_parser(
+        'restmapper', help='run the rest to rabbitmp mapper')
+    p_restmapper.set_defaults(func=f_restmapper)
 
     p_liveupdate = subparsers.add_parser(
         'liveupdate', help='run the websocket live updater')

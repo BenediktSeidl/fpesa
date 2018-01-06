@@ -3,7 +3,7 @@ from asyncio import sleep as asyncio_sleep
 from unittest import mock
 from unittest import TestCase
 
-from fpesa.live_update import liveupdate, consume_messages_from_bus
+from fpesa.liveupdate import liveupdate, consume_messages_from_bus
 from common import install_test_config, RabbitMqTestCase
 
 install_test_config()
@@ -69,7 +69,7 @@ class TestLiveUpdateWebsockets(WebsocketsTestCase):
         see if websocket is added to connection list
         """
         # not sure how usefull this really is
-        from fpesa.live_update import connections
+        from fpesa.liveupdate import connections
 
         self.assertEqual(len(connections), 0)
 

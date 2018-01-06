@@ -1,6 +1,6 @@
-from fpesa.rest2bus import Endpoint, FireAndForgetAdapter
-from fpesa.rest2bus import RequestResponseAdapter
-from fpesa.rest2bus import get_app as r2b_get_app
+from fpesa.restmapper import Endpoint, FireAndForgetAdapter
+from fpesa.restmapper import RequestResponseAdapter
+from fpesa.restmapper import get_app as r2b_get_app
 
 
 def get_endpoints():
