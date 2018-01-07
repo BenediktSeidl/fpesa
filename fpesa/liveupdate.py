@@ -25,7 +25,8 @@ async def liveupdate(websocket, path):
             await asyncio.sleep(10)  # TODO: how long?
     finally:
         logger.info('closing websocket connection {}'.format(websocket))
-        connections.remove(websocket)
+        if websocket in connections:
+            connections.remove(websocket)
 
 
 async def consume_messages_from_bus(loop):
@@ -51,6 +52,8 @@ async def consume_messages_from_bus(loop):
                     try:
                         await websocket.send(message.body)
                     except ConnectionClosed:
+                        connections.remove(websocket)  # don't wait until ping
+                        # finds this dead connection
                         logger.info(
                             'connection {} already closed'.format(websocket))
 
