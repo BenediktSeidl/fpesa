@@ -114,7 +114,7 @@ class Adapter():
         """
         raise NotImplementedError()
 
-    def get_exchange_name(self):
+    def get_endpoint_name(self):
         return "{}:{}".format(
             self.endpoint.path,
             self.endpoint.method.upper()
@@ -134,21 +134,22 @@ class FireAndForgetAdapter(Adapter):
         super().init(endpoint)
         self.channel = get_connection().channel()
         # TODO: move exchange declare into function?!
-        # so we can call it from producer and consume
+        # so we can call it from producer and consume?
         self.channel.exchange_declare(
-            exchange=self.get_exchange_name(),
+            exchange=self.get_endpoint_name(),
             exchange_type='fanout',
         )
-        self.channel.queue_declare(queue='worker', durable=True)
+        self.channel.queue_declare(
+            queue=self.get_endpoint_name(), durable=True)
         self.channel.queue_bind(
-            exchange=self.get_exchange_name(), queue='worker')
+            exchange=self.get_endpoint_name(), queue=self.get_endpoint_name())
 
     def adapt(self, request_data, request_args):
         """
         Send the message to RabbitMQ
         """
         self.channel.basic_publish(
-            exchange=self.get_exchange_name(),
+            exchange=self.get_endpoint_name(),
             routing_key='',
             body=json.dumps({
                 'data': request_data,
@@ -175,12 +176,12 @@ class RequestResponseAdapter(Adapter):
         super().init(endpoint)
         self.channel = get_connection().channel()
         self.channel.exchange_declare(
-            exchange=self.get_exchange_name(),
+            exchange=self.get_endpoint_name(),
             exchange_type='direct',
         )
         self.channel.queue_declare(queue='worker', durable=True)
         self.channel.queue_bind(
-            exchange=self.get_exchange_name(), queue='worker')
+            exchange=self.get_endpoint_name(), queue='worker')
 
         self.response_channel = get_connection().channel()
         self.response_channel.exchange_declare(
@@ -193,7 +194,7 @@ class RequestResponseAdapter(Adapter):
     def adapt(self, request_data, request_args):
         correlation_id = uuid.uuid4().hex
         self.channel.basic_publish(
-            exchange=self.get_exchange_name(),
+            exchange=self.get_endpoint_name(),
             routing_key='',
             body=json.dumps({
                 'data': request_data,

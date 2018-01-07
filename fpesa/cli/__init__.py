@@ -23,6 +23,11 @@ def f_liveupdate(options):
     main(options)
 
 
+def f_message_post(options):
+    from fpesa.message import message_post_worker
+    message_post_worker()
+
+
 def main(args=None):
     parser = argparse.ArgumentParser()
     parser.set_defaults(loglevel=[30])
@@ -44,6 +49,10 @@ def main(args=None):
     p_liveupdate = subparsers.add_parser(
         'liveupdate', help='run the websocket live updater')
     p_liveupdate.set_defaults(func=f_liveupdate)
+
+    p_message_post = subparsers.add_parser(
+        'message_post', help='run the worker to insert messages into database')
+    p_message_post.set_defaults(func=f_message_post)
 
     if args is None:
         args = sys.argv
