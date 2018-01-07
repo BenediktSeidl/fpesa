@@ -42,7 +42,7 @@ async def consume_messages_from_bus(loop):
         exchange = await channel.declare_exchange(
             '/messages/:POST', type=aio_pika.exchange.ExchangeType.FANOUT)
         queue = await channel.declare_queue('liveupdate', durable=True)
-        queue.bind(exchange)
+        await queue.bind(exchange)
         logger.info('waiting for messages...')
 
         async for message in queue:
