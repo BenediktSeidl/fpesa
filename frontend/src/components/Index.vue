@@ -11,19 +11,18 @@ export default {
   name: 'Index',
   mounted () {
     var self = this
-    // TODO: don't push but insert at pos 0 so we don't have to scroll
     // TODO: add time?
-    self.messages.push({class: 'internal', message: 'connection_status: offline'})
+    self.messages.unshift({class: 'internal', message: 'connection_status: offline'})
     self.init()
   },
   methods: {
     onSocketOpen (event) {
-      this.messages.push({class: 'internal', message: 'connection_status: connected'})
+      this.messages.unshift({class: 'internal', message: 'connection_status: connected'})
     },
     onSocketClose (event) {
       var self = this
-      self.messages.push({class: 'internal', message: 'connection_status: closed'})
-      self.messages.push({class: 'internal', message: 'trying to reconnect'})
+      self.messages.unshift({class: 'internal', message: 'connection_status: closed'})
+      self.messages.unshift({class: 'internal', message: 'trying to reconnect'})
       self.socket.removeEventListener('open', self.onSocketOpen)
       self.socket.removeEventListener('close', self.onSocketClose)
       self.socket.removeEventListener('error', self.onSocketError)
@@ -33,14 +32,19 @@ export default {
       }, 1000)
     },
     onSocketMessage (event) {
-      this.messages.push({message: event.data})
+      var self = this
+      var reader = new FileReader()
+      reader.addEventListener('load', function (event) {
+        self.messages.unshift({message: JSON.parse(event.target.result)})
+      })
+      reader.readAsText(event.data)
     },
     onSocketError (event) {
-      this.messages.push({class: 'internal-error', message: 'connection_status: error ' + event})
+      this.messages.unshift({class: 'internal-error', message: 'connection_status: error ' + event})
     },
     init () {
       var self = this
-      self.messages.push({class: 'internal', message: 'connection_status: trying to connect...'})
+      self.messages.unshift({class: 'internal', message: 'connection_status: trying to connect...'})
       self.socket = new WebSocket('ws://' + location.host + '/ws/v1/')
       self.socket.addEventListener('open', self.onSocketOpen)
       self.socket.addEventListener('close', self.onSocketClose)
