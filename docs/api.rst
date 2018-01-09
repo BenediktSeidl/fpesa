@@ -1,6 +1,6 @@
-###
+---
 API
-###
+---
 
-.. automodule:: fpesa.restmapper
+.. automodule:: fpesa
    :members:

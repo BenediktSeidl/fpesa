@@ -2,24 +2,26 @@ fpesa
 =====
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 4
 
    api
 
-codeblock::
+Block Diagram
+-------------
+
+::
 
  +----------------------------------------------------------------+
  |              FRONTEND (browser based)                          |
  +----------------------------------------------------------------+
             |                    |                     |
-            |                    | REST                | websockets
+            | HTTP               | HTTP/REST           | websockets
             |                    |                     |
  +----------------------------------------------------------------+
  |                 REVERSE PROXY (nginx)                          |
  +----------------------------------------------------------------+
             |                    |                     |
-            |                    | REST                | websockets
+            | HTTP               | HTTP/REST           | websockets
             |                    |                     |
  +--------------------+  +------------------+  +------------------+
  | npm / static files |  | fpesa restmapper |  | fpesa liveupdate |

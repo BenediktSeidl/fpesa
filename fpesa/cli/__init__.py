@@ -1,3 +1,19 @@
+"""
+-----------
+commandline
+-----------
+
+fpesa comes with a commandline interface.
+
+.. argparse::
+   :module: fpesa.cli
+   :func: get_argument_parser
+   :prog: fpesa
+   :nodefault:
+
+
+
+"""
 import sys
 import logging
 import argparse
@@ -28,7 +44,7 @@ def f_message_post(options):
     message_post_worker()
 
 
-def main(args=None):
+def get_argument_parser():
     parser = argparse.ArgumentParser()
     parser.set_defaults(loglevel=[30])
     parser.add_argument(
@@ -54,6 +70,18 @@ def main(args=None):
         'message_post', help='run the worker to insert messages into database')
     p_message_post.set_defaults(func=f_message_post)
 
+    return parser
+
+
+def main(args=None):
+    """
+    Start a component of fpesa
+
+    :param list(str) args: command line arguments, when ``None``
+        :py:data:`sys.argv` is used instead. Used for testing
+    """
+    parser = get_argument_parser()
+
     if args is None:
         args = sys.argv
     options = parser.parse_args(args[1:])
@@ -63,4 +91,5 @@ def main(args=None):
         format="%(asctime)s %(levelname)s :: %(name)s :: %(message)s",
     )
     logging.info("starting fpesa version {}".format(fpesa.__version__))
+
     options.func(options)

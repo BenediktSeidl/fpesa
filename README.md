@@ -44,7 +44,8 @@ py.test
 ### Docs
 
 ```bash
-sphinx-build doc doc/_build
+pip install -r docs/requirements.txt
+sphinx-build docs docs/_build
 ```
 
 ## Functional Requirements

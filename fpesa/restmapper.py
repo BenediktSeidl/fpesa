@@ -1,4 +1,6 @@
 """
+.. _restmapper:
+
 Generic rest to RabbitMQ Mapper
 ###############################
 
@@ -7,7 +9,7 @@ endpoint is just repeating glue logic to map the request data from the http
 request to the message broker. In order to not repeat the same code over and
 over again this simple bridge was created.
 
-For each rest endpoint you create a :class:`Endpoint`, but them into a list and
+For each rest endpoint you create a :class:`Endpoint`, put them into a list and
 call :func:`get_app` to get a wsgi app.
 """
 
@@ -29,13 +31,17 @@ class Endpoint():
     """
     Maps a rest endpoint to a exchange in rabbitmq.
 
-    :param str path: asd
-    :param str method: method
-    :param Adapter adapter: Adapater
-    :param dict schema_req_data: asd
-    :param dict schema_req_args: asd
+    :param str path: rest endpoint path
+    :param str method: allowed method
+    :param Adapter adapter: how to map the incoming request? currently
+        :py:class:`FireAndForgetAdapter` and :py:class:`RequestResponseAdapter`
+        are available
+    :param dict schema_req_data: a jsonschema describing the valid request body
+    :param dict schema_req_args: a jsonschema describing the valid request
+        parameters. please note that the request arguments are mapped into a
+        simple dictionary, and both key and value are of the type string.
 
-    The name of the exchange consinst of path and method seperated by a colon.
+    The name of the exchange consists of path and method seperated by a colon.
     """
     def __init__(
             self, path, method, adapter,

@@ -33,7 +33,9 @@
 # ones.
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.viewcode']
+    'sphinx.ext.viewcode',
+    'sphinxarg.ext',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
@@ -105,6 +107,8 @@ html_theme = 'alabaster'
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
 html_sidebars = {
     '**': [
+        'about.html',
+        'navigation.html',
         'relations.html',  # needs 'show_related': True theme option to display
         'searchbox.html',
     ]
@@ -175,4 +179,7 @@ intersphinx_mapping = {
     'https://docs.python.org/3/': None,
     'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
     'jsonschema': ('http://python-jsonschema.readthedocs.io/en/latest/', None),
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
+    'websocket': ('https://websockets.readthedocs.io/en/stable/', None),
+    'pika': ('http://pika.readthedocs.io/en/latest/', None),
 }
