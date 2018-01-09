@@ -13,3 +13,9 @@ def get_connection():
             virtual_host=config['rabbitmq']['virtual_host']
         ))
     return _connection
+
+
+def close_connection():
+    global _connection
+    _connection.close()
+    _connection = None

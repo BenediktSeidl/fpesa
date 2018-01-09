@@ -21,7 +21,7 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, InternalServerError
 
-from .rabbitmq import get_connection
+from .rabbitmq import get_connection, close_connection
 
 
 class Endpoint():
@@ -132,30 +132,54 @@ class FireAndForgetAdapter(Adapter):
         initialize channel and exchange
         """
         super().init(endpoint)
-        self.channel = get_connection().channel()
+
+    @contextmanager
+    def channel(self):
+        channel = get_connection().channel()
+        channel.basic_qos(prefetch_count=1)
         # TODO: move exchange declare into function?!
         # so we can call it from producer and consume?
-        self.channel.exchange_declare(
+        channel.exchange_declare(
             exchange=self.get_endpoint_name(),
             exchange_type='fanout',
         )
-        self.channel.queue_declare(
+        channel.queue_declare(
             queue=self.get_endpoint_name(), durable=True)
-        self.channel.queue_bind(
+        channel.queue_bind(
             exchange=self.get_endpoint_name(), queue=self.get_endpoint_name())
+        try:
+            yield channel
+        finally:
+            close_connection()
+
 
     def adapt(self, request_data, request_args):
         """
         Send the message to RabbitMQ
         """
-        self.channel.basic_publish(
-            exchange=self.get_endpoint_name(),
-            routing_key='',
-            body=json.dumps({
-                'data': request_data,
-                'args': request_args,
-            }),
-        )
+        # originally the rabbitmq connection was opened in init.  but as
+        # rabbitmq is connection based an we don't care about said connection
+        # via a ping or something else, the connection finally dies. there is a
+        # workaround for this: an exception is raised when calling
+        # connection.process_data_events() and the connection already died.
+        # then it's possible to reconnect and then send the message.
+        #
+        # opening, sending message and closing the connection: ~0.03s
+        # checking connection and sending message: ~0.005s
+        #
+        # but as i don't know anything about the time constraints of this
+        # function i remember Donald Knuth: Premature optimization is the root
+        # of all evil. If this function will be the bottle neck one should
+        # think about rewriting it with aiohttp, and aio_pika.connect_robust.
+        with self.channel() as channel:
+            channel.basic_publish(
+                exchange=self.get_endpoint_name(),
+                routing_key='',
+                body=json.dumps({
+                    'data': request_data,
+                    'args': request_args,
+                }),
+            )
         return {}
 
 
@@ -175,6 +199,7 @@ class RequestResponseAdapter(Adapter):
     def init(self, endpoint):
         super().init(endpoint)
         self.channel = get_connection().channel()
+        self.channel.basic_qos(prefetch_count=1)
         self.channel.exchange_declare(
             exchange=self.get_endpoint_name(),
             exchange_type='direct',
@@ -184,6 +209,7 @@ class RequestResponseAdapter(Adapter):
             exchange=self.get_endpoint_name(), queue='worker')
 
         self.response_channel = get_connection().channel()
+        self.response_channel.basic_qos(prefetch_count=1)
         self.response_channel.exchange_declare(
             exchange='RPC', exchange_type='direct')
         self.response_queue = self.response_channel.queue_declare(
