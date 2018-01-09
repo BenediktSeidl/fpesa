@@ -14,6 +14,7 @@ call :func:`get_app` to get a wsgi app.
 import json
 import uuid
 import time
+from contextlib import contextmanager
 
 import pika
 import jsonschema
@@ -21,7 +22,7 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, InternalServerError
 
-from .rabbitmq import get_connection, close_connection
+from .rabbitmq import open_connection, get_connection
 
 
 class Endpoint():
@@ -135,7 +136,8 @@ class FireAndForgetAdapter(Adapter):
 
     @contextmanager
     def channel(self):
-        channel = get_connection().channel()
+        connection = open_connection()
+        channel = connection.channel()
         channel.basic_qos(prefetch_count=1)
         # TODO: move exchange declare into function?!
         # so we can call it from producer and consume?
@@ -150,7 +152,7 @@ class FireAndForgetAdapter(Adapter):
         try:
             yield channel
         finally:
-            close_connection()
+            connection.close()
 
 
     def adapt(self, request_data, request_args):
