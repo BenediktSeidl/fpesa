@@ -28,7 +28,7 @@ def f_restmapper(options):
     basicConfig(level=DEBUG)
     app = get_app()
     run_simple(
-        '127.0.0.1', 8081, app,
+        options.bind, options.port, app,
         use_debugger=True,
         use_reloader=True
     )
@@ -60,10 +60,22 @@ def get_argument_parser():
 
     p_restmapper = subparsers.add_parser(
         'restmapper', help='run the rest to rabbitmp mapper')
+    p_restmapper.add_argument(
+        '--bind', help='bind address',
+        default="127.0.0.1")
+    p_restmapper.add_argument(
+        '--port', help='port to listen on',
+        default=8081, type=int)
     p_restmapper.set_defaults(func=f_restmapper)
 
     p_liveupdate = subparsers.add_parser(
         'liveupdate', help='run the websocket live updater')
+    p_liveupdate.add_argument(
+        '--bind', help='bind address',
+        default="127.0.0.1")
+    p_liveupdate.add_argument(
+        '--port', help='port to listen on',
+        default=8082, type=int)
     p_liveupdate.set_defaults(func=f_liveupdate)
 
     p_message_post = subparsers.add_parser(

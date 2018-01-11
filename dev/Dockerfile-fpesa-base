@@ -1,0 +1,13 @@
+FROM python:3.6
+
+WORKDIR /opt/fpesa/workdir/
+
+# TODO: this is not ideal because we add many files that we don't need.
+
+ADD . /opt/fpesa/workdir/
+
+RUN apt-get update && apt-get install -y \
+        netcat \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN bash ./dev/build_fpesa.sh

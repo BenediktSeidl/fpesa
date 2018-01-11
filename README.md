@@ -47,6 +47,13 @@ py.test
 pip install -r docs/requirements.txt
 sphinx-build docs docs/_build
 ```
+## Docker Compose
+
+```
+docker-compose build  # only needed for first run or for updating changed code
+docker-compose up
+```
+`fpesa-frontend-build` and `fpesa-base` are ment to exit early.
 
 ## Functional Requirements
 

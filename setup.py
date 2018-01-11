@@ -4,7 +4,7 @@ setup(
     name="fpesa",
     version="0.0.1",
     packages=find_packages(),
-    # TODO: package data! default.conf
+    include_package_data=True,
     install_requires=[
         'werkzeug',
         'pika<0.11',

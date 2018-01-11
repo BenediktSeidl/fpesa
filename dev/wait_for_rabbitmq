@@ -1,0 +1,8 @@
+#!/bin/bash
+
+while ! nc -z rabbitmq 5672 ; do
+  sleep 1
+  echo "Waiting for rabbitmq"
+done
+
+exec "$@"

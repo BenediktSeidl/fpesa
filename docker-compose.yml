@@ -1,0 +1,51 @@
+# https://docs.docker.com/compose/compose-file/
+version: '3'
+services:
+
+  rabbitmq:
+    image: rabbitmq:3.7-alpine
+    # https://hub.docker.com/_/rabbitmq/
+
+  postgres:
+    image: postgres:10.1-alpine
+    # https://hub.docker.com/_/postgres/
+    environment:
+      POSTGRES_PASSWORD: fpesa
+      POSTGRES_USER: fpesa
+      POSTGRES_DB: fpesa
+
+  nginx:
+    image: nginx:1.13-alpine
+    # https://hub.docker.com/_/nginx/
+    volumes:
+      - fpesa-frontend-static:/opt/fpesa/static/
+      - ./dev/nginx/:/opt/fpesa/nginx/
+    command: ['nginx', '-c', '/opt/fpesa/nginx/docker.conf']
+
+  fpesa-frontend-build:
+    # build static files and put them into a volume that is also mounted into
+    # nginx. the docker hast to be run once at the beginning and may then die
+    image: node:9.3
+    # https://hub.docker.com/_/node/
+    volumes:
+      - fpesa-frontend-static:/opt/fpesa/static/
+      - ./:/opt/fpesa/workdir
+    command: ['bash', '/opt/fpesa/workdir/dev/build_static_files.sh']
+    restart: "no"
+
+  fpesa-base:
+    image: fpesa-base
+    build:
+      context: .
+      dockerfile: dev/Dockerfile-fpesa-base
+
+  fpesa-liveupdate:
+    image: fpesa-base
+    entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "liveupdate", "--bind=0.0.0.0"]
+
+  fpesa-restmapper:
+    image: fpesa-base
+    entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "restmapper", "--bind=0.0.0.0"]
+
+volumes:
+  fpesa-frontend-static:
