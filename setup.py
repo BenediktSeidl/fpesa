@@ -6,13 +6,13 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'werkzeug',
         'pika<0.11',
         'jsonschema',
         'websockets',
         'aio-pika',
         'sqlalchemy',
         'psycopg2',
+        'aiohttp',
     ],
     entry_points={
         'console_scripts': [

@@ -14,7 +14,7 @@ def install_test_config():
         config.read_file(fo)
 
 
-class RabbitMqTestCase(TestCase):
+class ClearRabbitMQ():
     def __rabbitmq_api(
             self, method, url_part, data={}, status_code_ok=(200, 204)):
         result = requests.request(
@@ -37,6 +37,11 @@ class RabbitMqTestCase(TestCase):
             {'configure': '.*', 'write': '.*', 'read': '.*'})
 
         self.connection = get_connection()
+
+
+class RabbitMqTestCase(TestCase, ClearRabbitMQ):
+    def setUp(self):
+        ClearRabbitMQ.setUp(self)
 
     def _setup_channel(self, exchange, exchange_type='fanout'):
         channel = self.connection.channel()

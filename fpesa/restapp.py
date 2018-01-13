@@ -5,6 +5,8 @@ restapp
 
 concrete config for :ref:`restmapper`
 """
+import aiohttp
+
 from fpesa.restmapper import Endpoint, FireAndForgetAdapter
 from fpesa.restmapper import RequestResponseAdapter
 from fpesa.restmapper import get_app as r2b_get_app
@@ -34,3 +36,8 @@ def get_endpoints():
 
 def get_app():
     return r2b_get_app(get_endpoints())
+
+
+def main(options):
+    app = get_app()
+    aiohttp.web.run_app(app, host=options.bind, port=options.port)

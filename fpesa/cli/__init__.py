@@ -22,16 +22,8 @@ import fpesa
 
 
 def f_restmapper(options):
-    from fpesa.restapp import get_app
-    from werkzeug.serving import run_simple
-    from logging import basicConfig, DEBUG
-    basicConfig(level=DEBUG)
-    app = get_app()
-    run_simple(
-        options.bind, options.port, app,
-        use_debugger=True,
-        use_reloader=True
-    )
+    from fpesa.restapp import main
+    main(options)
 
 
 def f_liveupdate(options):

@@ -2,6 +2,12 @@
 
 ## Developing
 
+### Dependencies
+
+```bash
+apt-get install libpq-dev
+```
+
 ### Starting all Components
 
 All commands shown in this section show the developing setup. For instructions

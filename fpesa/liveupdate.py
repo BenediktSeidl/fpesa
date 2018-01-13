@@ -15,7 +15,7 @@ import websockets
 from websockets.exceptions import ConnectionClosed
 import aio_pika
 
-from fpesa.config import config
+from fpesa import rabbitmq
 
 logger = logging.getLogger(__name__)
 connections = []
@@ -64,14 +64,7 @@ async def consume_messages_from_bus(loop):
 
     :param asyncio.AbstractEventLoop loop: event loop
     """
-    config_mq = config['rabbitmq']
-    connection = await aio_pika.connect_robust(
-        host=config_mq['host'],
-        virtualhost=config_mq['virtual_host'],
-        login=config_mq['user'],
-        password=config_mq['password'],
-        loop=loop,
-    )
+    connection = await rabbitmq.get_aio_connection(loop)
     async with connection:
         channel = await connection.channel()
         exchange = await channel.declare_exchange(

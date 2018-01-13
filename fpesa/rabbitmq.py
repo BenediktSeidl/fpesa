@@ -6,6 +6,7 @@ RabbitMQ
 Helper functions for RabbitMQ
 """
 import pika
+import aio_pika
 
 from .config import config
 
@@ -33,3 +34,15 @@ def get_connection():
     if _connection is None:
         _connection = open_connection()
     return _connection
+
+
+async def get_aio_connection(loop=None):
+    config_mq = config['rabbitmq']
+    connection = await aio_pika.connect_robust(
+        host=config_mq['host'],
+        virtualhost=config_mq['virtual_host'],
+        login=config_mq['user'],
+        password=config_mq['password'],
+        loop=loop,
+    )
+    return connection

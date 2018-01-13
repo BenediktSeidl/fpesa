@@ -1,134 +1,129 @@
 import json
-from collections import namedtuple
-from unittest import mock
+import logging
 
-import pika
-from werkzeug.test import Client
-from werkzeug.wrappers import BaseResponse
+from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
+import aio_pika
 
-from common import install_test_config, RabbitMqTestCase
 from fpesa.restmapper import get_app, Endpoint, FireAndForgetAdapter
 from fpesa.restmapper import RequestResponseAdapter
+from fpesa import rabbitmq
+
+from common import ClearRabbitMQ
+from common import install_test_config
 
 install_test_config()
 
-FakeUUID = namedtuple('FakeUUID', ['hex'])
+# pika and aio_pika are quite verbose...
+logging.getLogger('pika').setLevel(logging.WARNING)
+logging.getLogger('aio_pika').setLevel(logging.WARNING)
 
 
-class TestRestBridge(RabbitMqTestCase):
-    def get_simple_ff_app(self):
-        app = get_app([Endpoint(
+class TestRestBridgeFF(AioHTTPTestCase):
+    async def get_application(self):
+        # used by AioHTTPTestCase to construct self.client
+        return get_app([Endpoint(
             '/testing/', 'POST', FireAndForgetAdapter(),
             schema_req_data={'type': 'object', 'properties': {
                 'a': {'type': 'integer'}}, 'additionalProperties': False})])
-        c = Client(app, BaseResponse)
-        return c
 
-    def get_simple_rr_app(self):
-        adapter = RequestResponseAdapter()
-        app = get_app([Endpoint(
-            '/testing/', 'GET', adapter,
-            schema_req_args={'type': 'object', 'properties': {
-                'b': {'type': 'string'}}, 'additionalProperties': False})])
-        c = Client(app, BaseResponse)
-        return c, adapter
+    async def get_queue(self, queue_name):
+        connection = await rabbitmq.get_aio_connection(self.loop)
+        channel = await connection.channel()
+        queue = await channel.declare_queue(queue_name, durable=True)
+        return queue
 
-    def test_ff_post_with_body(self):
+    @unittest_run_loop
+    async def test_ff_post_with_body(self):
         """ declare rest endpoint, send message, see if message is on bus """
-        channel = self._setup_channel('/testing/:POST')
+        response = await self.client.request(
+            "POST", "/testing/", json={'a': 2})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(await response.json(), {})
 
-        c = self.get_simple_ff_app()
-        resp = c.post('/testing/', data=json.dumps({'a': 2}))
-        self.assertEqual(json.loads(resp.data.decode()), {})
+        message = await (await self.get_queue('/testing/:POST')).get()
 
-        method, properties, body = channel.basic_get(queue='worker')
-        self.assertNotEqual(body, None)
         self.assertEqual(
-            json.loads(body.decode()),
-            {'data': {'a': 2}, 'args': None}
-        )
-        channel.basic_ack(method.delivery_tag)
-
-    def test_validation_error(self):
-        c = self.get_simple_ff_app()
-        resp = c.post('/testing/', data=json.dumps({'testing': 'asd'}))
-        response = json.loads(resp.data.decode())
-        description = response['error'].pop('description')
-        self.assertEqual(response, {'error': {'code': 500}})
-        self.assertTrue('Additional properties are not allowed', description)
-
-    def test_body_not_allowed(self):
-        app = get_app([Endpoint('/testing/', 'POST', FireAndForgetAdapter())])
-        c = Client(app, BaseResponse)
-        resp = c.post('/testing/')
-        self.assertEqual(resp.status_code, 200)
-
-        resp = c.post('/testing/', data=json.dumps({'testing': 'asd'}))
-        self.assertEqual(resp.status_code, 500)
-
-    def test_request_args(self):
-        app = get_app([Endpoint(
-            '/args/', 'PUT', FireAndForgetAdapter(),
-            schema_req_args={
-                'type': 'object',
-                'additionalProperties': False,
-                'properties': {
-                    'key': {
-                        'type': 'string'
-                    }
-                }
-            }
-
-        )])
-        channel = self._setup_channel('/args/:PUT')
-        c = Client(app, BaseResponse)
-        resp = c.put('/args/?key=value')
-        self.assertEqual(resp.status_code, 200)
-
-        method, properties, body = channel.basic_get(queue='worker')
-        self.assertEqual(
-            json.loads(body.decode()),
-            {'args': {'key': 'value'}, 'data': None}
+            json.loads(message.body.decode()),
+            {'args': None, 'data': {'a': 2}}
         )
 
-    def test_error_404(self):
+    @unittest_run_loop
+    async def test_validation_error(self):
+        """ check jsonschema validation """
+        response = await self.client.request(
+            "POST", "/testing/", json={'testing': 'asd'})
+        body = await response.json()
+        self.assertEqual(response.status, 500)
+        description = body['error'].pop('description')
+        self.assertEqual(body, {'error': {'code': 500}})
+        self.assertTrue('Additional properties are not allowed' in description)
+
+    @unittest_run_loop
+    async def test_error_404(self):
         """ try to access not existing endpoint """
-        c = self.get_simple_ff_app()
-        resp = c.get('/does_not_exists/')
-        self.assertEqual(resp.status_code, 404)
-        response = json.loads(resp.data.decode())
+        response = await self.client.request("GET", "/does_not_exist/")
+        self.assertEqual(response.status, 404)
+        response = await response.json()
         description = response['error'].pop('description', '')
-        self.assertTrue('not found' in description)
+        self.assertTrue('not found' in description.lower(), description)
         self.assertEqual(response, {'error': {'code': 404}})
 
-    @mock.patch('uuid.uuid4', return_value=FakeUUID('abc'))
-    def test_rr_simple(self, patched):
-        channel = self._setup_channel('/testing/:GET', exchange_type='direct')
-        c, adapter = self.get_simple_rr_app()
 
-        # answer to message, before receiving it, otherwise we would need
-        # threads
-        channel.basic_publish(
-            exchange='RPC',
-            routing_key=adapter.response_queue.method.queue,
-            body=json.dumps({'d': 'e'}),
-            properties=pika.BasicProperties(
-                correlation_id='abc'
-            ),
-        )
+class TestRestBridgeRR(AioHTTPTestCase, ClearRabbitMQ):
+    def setUp(self):
+        ClearRabbitMQ.setUp(self)
+        super().setUp()
 
-        # send request
-        resp = c.get("/testing/?b=c")
+    async def get_application(self):
+        # used by AioHTTPTestCase to construct self.client
+        return get_app([Endpoint(
+            '/testing/', 'GET', RequestResponseAdapter(),
+            schema_req_args={'type': 'object', 'properties': {
+                'b': {'type': 'string'}}, 'additionalProperties': False})])
 
-        # see if message was sent
-        method, properties, body = channel.basic_get(queue='worker')
-        self.assertEqual(properties.correlation_id, 'abc')
-        self.assertTrue(properties.reply_to.startswith('amq.gen-'))
+    async def worker(self):
+        """ dummy rpc worker that responses to RequestResponseAdapter """
+        connection = await rabbitmq.get_aio_connection(self.loop)
+        async with connection:
+            channel = await connection.channel()
+            queue = await channel.declare_queue("/testing/:GET", durable=True)
+            message = await queue.get()
+            with message.process():
+                self.assertEqual(
+                    json.loads(message.body.decode()),
+                    {'args': {'b': 'c'}, 'data': None})
+                response_exchange = await channel.declare_exchange(
+                    'RPC',
+                    type=aio_pika.exchange.ExchangeType.DIRECT)
+                await response_exchange.publish(
+                    aio_pika.Message(
+                        b'{"this is": "a response"}',
+                        correlation_id=message.correlation_id,
+                    ),
+                    routing_key=message.reply_to
+                )
+            await channel.close()
+            await channel.closing
+
+    @unittest_run_loop
+    async def test_body_not_allowed(self):
+        """ see error message when including a body but no body is allowed """
+        response = await self.client.request(
+            "GET", "/testing/", json={'d': 'e'})
+        self.assertEqual(response.status, 500)
         self.assertEqual(
-            json.loads(body.decode()),
-            {'args': {'b': 'c'}, 'data': None}
-        )
+            await response.json(),
+            {'error': {
+                'description': 'No request data allowed', 'code': 500}}
+            )
 
-        # check rest answer
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(json.loads(resp.data.decode()), {'d': 'e'})
+    @unittest_run_loop
+    async def test_rr_simple(self):
+        """ simple valid RequestResponse """
+        self.loop.create_task(self.worker())
+        response = await self.client.request(
+            "GET", "/testing/", params={'b': 'c'})
+        self.assertEqual(response.status, 200, await response.json())
+        self.assertEqual(await response.json(), {'this is': 'a response'})
+
+# TODO: test generic exception and make sure they return a valid json!
