@@ -7,7 +7,7 @@ liveupdate provides a websocket connection that publishs all inserted
 messages.
 
 """
-
+import json
 import asyncio
 import logging
 
@@ -77,7 +77,13 @@ async def consume_messages_from_bus(loop):
             with message.process():
                 for websocket in connections:
                     try:
-                        await websocket.send(message.body)
+                        await websocket.send(
+                                json.dumps(
+                                    json.loads(
+                                        message.body.decode()
+                                    )['data']
+                                ).encode()
+                            )
                     except ConnectionClosed:
                         connections.remove(websocket)  # don't wait until ping
                         # finds this dead connection

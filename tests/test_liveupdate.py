@@ -120,7 +120,7 @@ class TestLiveUpdateMessages(WebsocketsTestCase, RabbitMqTestCase):
         self.channel.basic_publish(
             exchange='/messages/:POST',
             routing_key='',
-            body='bodyy'
+            body='{"data": "bodyy"}'
         )
         await asyncio_sleep(0.1)  # wait for message # hmmmm :-/
 
@@ -136,7 +136,7 @@ class TestLiveUpdateMessages(WebsocketsTestCase, RabbitMqTestCase):
         self.websocket_open_cb_close(self.send_message_callback)
 
         self.assertEqual(FakeWebsocket.send.mock.call_count, 1)
-        self.assertEqual(FakeWebsocket.send.mock.call_args[0][1], b'bodyy')
+        self.assertEqual(FakeWebsocket.send.mock.call_args[0][1], '"bodyy"')
 
     def test_websocket_removed_after_send_with_error(self):
         from fpesa.liveupdate import connections
