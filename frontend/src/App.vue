@@ -2,7 +2,8 @@
   <div id="app">
     <ul class="nav">
       <li>
-        <router-link to="/">index</router-link>
+        <router-link to="/">live</router-link>
+        <router-link to="/saved/">saved</router-link>
         <router-link to="/dev/">dev</router-link>
       </li>
     </ul>
@@ -13,6 +14,11 @@
 </template>
 
 <script>
+import Vue from 'vue'
+import VueResource from 'vue-resource'
+
+Vue.use(VueResource)
+
 export default {
   name: 'app'
 }
@@ -48,7 +54,7 @@ ul.nav li a {
   border-right: 10px solid #bada55;
   float: left;
 }
-ul.nav li a.router-link-active {
+ul.nav li a.router-link-exact-active {
   background-color: #bada55;
 }
 .view {
