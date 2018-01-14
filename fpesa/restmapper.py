@@ -14,6 +14,7 @@ call :func:`get_app` to get a :py:class:aiohttp.web.Application
 """
 
 import json
+import logging
 import uuid
 
 import jsonschema
@@ -22,6 +23,8 @@ from aiohttp.web import json_response
 import aio_pika
 
 from . import rabbitmq
+
+logger = logging.getLogger(__name__)
 
 
 class Endpoint():
@@ -206,10 +209,14 @@ class RequestResponseAdapter(Adapter):
             routing_key=self.get_endpoint_name(),
         )
 
-        async for message in self.response_queue:
-            # TODO: timeout!
-            if message.correlation_id == correlation_id:
-                return json.loads(message.body.decode())
+        logger.info(
+            "waiting for rpc response in {}".format(self.response_queue.name))
+        async with self.response_queue.iterator() as q:
+            async for message in q:
+                # TODO: timeout!
+                with message.process():
+                    if message.correlation_id == correlation_id:
+                        return json.loads(message.body.decode())
 
 
 def json_error(code, description):

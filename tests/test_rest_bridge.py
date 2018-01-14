@@ -119,11 +119,21 @@ class TestRestBridgeRR(AioHTTPTestCase, ClearRabbitMQ):
 
     @unittest_run_loop
     async def test_rr_simple(self):
+        await self._rr_simple()
+
+    async def _rr_simple(self):
         """ simple valid RequestResponse """
         self.loop.create_task(self.worker())
         response = await self.client.request(
             "GET", "/testing/", params={'b': 'c'})
         self.assertEqual(response.status, 200, await response.json())
         self.assertEqual(await response.json(), {'this is': 'a response'})
+
+    @unittest_run_loop
+    async def test_rr_simple_twice(self):
+        await self._rr_simple()
+        await self._rr_simple()
+
+
 
 # TODO: test generic exception and make sure they return a valid json!

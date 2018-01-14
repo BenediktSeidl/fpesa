@@ -55,3 +55,36 @@ class TestMessage(TestCase):
                 result['inserted'] - datetime.datetime.now()
                 < datetime.timedelta(seconds=2)
             )
+
+    def test_get(self):
+        """ insert 97 messages, and receive the last ten one """
+        create_all()
+        for i in range(97):
+            message.message_post({'a': i})
+        result = message.message_get(None, 0, 10)
+        self.maxDiff = None
+        self.assertEqual(
+            {
+                'paginationId': 97,
+                'offset': 0,
+                'limit': 10,
+                'total': 97,
+                'messages': [{'a': i} for i in range(96, 86, -1)]
+            },
+            result
+        )
+
+    def test_get_pagination_id(self):
+        """ get 2 messages but with pagination id 90 """
+        self.test_get()
+        result = message.message_get(90, 0, 2)
+        self.assertEqual(
+            {
+                'paginationId': 90,
+                'offset': 0,
+                'limit': 2,
+                'total': 90,
+                'messages': [{'a': 89}, {'a': 88}]
+            },
+            result
+        )

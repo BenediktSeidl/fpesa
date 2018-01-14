@@ -36,6 +36,11 @@ def f_message_post(options):
     message_post_worker()
 
 
+def f_message_get(options):
+    from fpesa.message import message_get_worker
+    message_get_worker()
+
+
 def get_argument_parser():
     parser = argparse.ArgumentParser()
     parser.set_defaults(loglevel=[30])
@@ -73,6 +78,10 @@ def get_argument_parser():
     p_message_post = subparsers.add_parser(
         'message_post', help='run the worker to insert messages into database')
     p_message_post.set_defaults(func=f_message_post)
+
+    p_message_get = subparsers.add_parser(
+        'message_get', help='run the worker to get messages from database')
+    p_message_get.set_defaults(func=f_message_get)
 
     return parser
 
