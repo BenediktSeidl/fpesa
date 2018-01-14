@@ -93,6 +93,7 @@ async def consume_messages_from_bus(loop):
 
 def main(options):
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(websockets.serve(liveupdate, options.bind, options.port))
+    loop.run_until_complete(
+        websockets.serve(liveupdate, options.bind, options.port))
     loop.run_until_complete(consume_messages_from_bus(loop))
     loop.run_forever()
