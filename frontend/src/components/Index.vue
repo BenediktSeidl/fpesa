@@ -18,18 +18,20 @@ export default {
   methods: {
     onSocketOpen (event) {
       this.messages.unshift({class: 'internal', message: 'connection_status: connected'})
+      self.toWait = 1
     },
     onSocketClose (event) {
       var self = this
       self.messages.unshift({class: 'internal', message: 'connection_status: closed'})
-      self.messages.unshift({class: 'internal', message: 'trying to reconnect'})
+      self.messages.unshift({class: 'internal', message: 'trying to reconnect in ' + self.toWait + 's'})
       self.socket.removeEventListener('open', self.onSocketOpen)
       self.socket.removeEventListener('close', self.onSocketClose)
       self.socket.removeEventListener('error', self.onSocketError)
       self.socket.removeEventListener('message', self.onSocketMessage)
       setTimeout(function () {
         self.init()
-      }, 1000)
+        self.toWait *= 2
+      }, self.toWait * 1000)
     },
     onSocketMessage (event) {
       var self = this
@@ -54,6 +56,7 @@ export default {
   },
   data () {
     return {
+      toWait: 1,
       messages: []
     }
   }
