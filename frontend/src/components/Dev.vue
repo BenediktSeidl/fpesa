@@ -17,14 +17,6 @@
 <script>
 export default {
   name: 'Dev',
-  mounted () {
-    var self = this
-    this.$http.post('/api/v1/messages/', {'a': 2}).then(function (response) {
-      self.messagesPostResponse = response.bodyText
-    }, function (error) {
-      self.messagesPostResponse = error.bodyText
-    })
-  },
   methods: {
     messagesPostCheck (event) {
       try {
@@ -35,7 +27,12 @@ export default {
       }
     },
     messagesPostSingle (event) {
-      this.$http.post('/api/v1/messages/', this.messagesPostMessage)
+      var self = this
+      self.$http.post('/api/v1/messages/', self.messagesPostMessage).then(function (response) {
+        self.messagesPostResponse = response.bodyText
+      }, function (error) {
+        self.messagesPostResponse = error.bodyText
+      })
     },
     messagesPostMultiple (event) {
       var self = this
