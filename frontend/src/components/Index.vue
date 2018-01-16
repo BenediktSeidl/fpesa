@@ -3,6 +3,9 @@
     <ul v-for="message in messages">
       <li :class="[message.class]"><div class="date">{{message.date}}:</div><pre>{{message.message|json}}</pre></li>
     </ul>
+    <div v-show="numRemovedMessages > 0">
+      ... and {{numRemovedMessages}} removed Messages
+    </div>
   </div>
 </template>
 
@@ -18,6 +21,11 @@ export default {
     insertMessage (message) {
       message.date = (new Date()).toISOString()
       this.messages.unshift(message)
+      if (this.messages.length > this.displayedMessages) {
+        var numToRemoveMessages = this.messages.length-this.displayedMessages
+        this.messages.splice(this.displayedMessages, numToRemoveMessages)
+        this.numRemovedMessages += numToRemoveMessages
+      }
     },
     onSocketOpen (event) {
       this.insertMessage({class: 'internal-success', message: 'connection_status: connected'})
@@ -60,6 +68,8 @@ export default {
   data () {
     return {
       toWait: 1,
+      displayedMessages: 30,
+      numRemovedMessages: 0,
       messages: []
     }
   }
