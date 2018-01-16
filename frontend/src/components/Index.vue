@@ -2,7 +2,7 @@
   <div>
     <h1>messages as they arrive</h1>
     <ul v-for="message in messages">
-      <li :class="[message.class]"><div class="date">{{message.date}}:</div><pre>{{message.message|json}}</pre></li>
+      <li :class="[message.class]"><div class="date">{{message.date}}:</div><pre>{{message.message}}</pre></li>
     </ul>
     <div v-show="numRemovedMessages > 0">
       ... and {{numRemovedMessages}} removed Messages
@@ -23,7 +23,7 @@ export default {
       message.date = (new Date()).toISOString()
       this.messages.unshift(message)
       if (this.messages.length > this.displayedMessages) {
-        var numToRemoveMessages = this.messages.length-this.displayedMessages
+        var numToRemoveMessages = this.messages.length - this.displayedMessages
         this.messages.splice(this.displayedMessages, numToRemoveMessages)
         this.numRemovedMessages += numToRemoveMessages
       }
