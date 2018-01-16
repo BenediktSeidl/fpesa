@@ -22,8 +22,8 @@ export default {
     },
     onSocketClose (event) {
       var self = this
-      self.messages.unshift({class: 'internal', message: 'connection_status: closed'})
       self.messages.unshift({class: 'internal', message: 'trying to reconnect in ' + self.toWait + 's'})
+      self.messages.unshift({class: 'internal', message: 'connection_status: closed (' + event.code + ')'})
       self.socket.removeEventListener('open', self.onSocketOpen)
       self.socket.removeEventListener('close', self.onSocketClose)
       self.socket.removeEventListener('error', self.onSocketError)
@@ -42,7 +42,7 @@ export default {
       reader.readAsText(event.data)
     },
     onSocketError (event) {
-      this.messages.unshift({class: 'internal-error', message: 'connection_status: error ' + event})
+      this.messages.unshift({class: 'internal-error', message: 'connection_status: error'})
     },
     init () {
       var self = this
