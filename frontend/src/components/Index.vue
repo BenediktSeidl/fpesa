@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1>messages as they arrive</h1>
     <ul v-for="message in messages">
       <li :class="[message.class]"><div class="date">{{message.date}}:</div><pre>{{message.message|json}}</pre></li>
     </ul>

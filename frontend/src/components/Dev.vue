@@ -1,16 +1,17 @@
 <template>
   <div>
-    <h1>POST /api/v1/messages/</h1>
-    <h2>single</h2>
-    <h3>request</h3>
+    <h1>call api directly</h1>
+    <h2>POST /api/v1/messages/</h2>
+    <h3>single</h3>
+    <h4>request</h4>
     <textarea :class="{'invalid': !messagesPostValid}" @keyup="messagesPostCheck" v-model="messagesPostMessage"></textarea>
     <br/>
     <button @click="messagesPostSingle()" type="button">send</button>
-    <h3>response</h3>
+    <h4>response</h4>
     <pre>{{messagesPostResponse}}</pre>
-    <h2>multiple</h2>
+    <h3>multiple</h3>
     <button @click="messagesPostMultiple()">100</button>
-    <h1>GET /api/v1/messages/</h1>
+    <h2>GET /api/v1/messages/</h2>
   </div>
 </template>
 

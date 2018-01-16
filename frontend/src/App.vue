@@ -60,7 +60,16 @@ ul.nav li a.router-link-exact-active {
 .view {
   overflow: hidden;
   float: left;
-  padding: 1%;
+  padding: 0 1% 1%;
   width: 98%;
 }
+h1, h2, h3, h4, h5, h6 {
+  font-size: 1em;
+  border-bottom: 10px solid #bada55;
+}
+h2 {border-bottom-width: 5px;}
+h3 {border-bottom-width: 2px;}
+h4 {border-bottom-width: 1px;}
+h5 {border-bottom-width: 1px; border-bottom-style:dashed;}
+h6 {border-bottom-width: 1px; border-bottom-style:dotted;}
 </style>
