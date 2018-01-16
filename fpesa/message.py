@@ -38,9 +38,9 @@ def message_get(session, request_arguments):
     # TODO: fix this docs
 
         :param int pagination_id: As new messages are inserted constantly it's
-            necessary to freeze the pagination in place, otherwise one could see
-            message twice when switching to the next page. The pagination_id is
-            provided with the first result of message_get
+            necessary to freeze the pagination in place, otherwise one could
+            see message twice when switching to the next page. The
+            pagination_id is provided with the first result of message_get
         :param int offset: how many message should be skipped
         :param int limit: how many messages should be returned (max: 100)
 
@@ -104,6 +104,7 @@ def message_post_worker():
         channel.stop_consuming()
     finally:
         connection.close()
+
 
 def message_get_worker():
     """
