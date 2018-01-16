@@ -60,6 +60,7 @@ ul.nav li a.router-link-exact-active {
 .view {
   overflow: hidden;
   float: left;
-  padding: 5px;
+  padding: 1%;
+  width: 98%;
 }
 </style>
