@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>messages as they arrive</h1>
-    <ul v-for="message in messages">
+    <ul v-for="message in messages" class="messages">
       <li :class="[message.class]"><div class="date">{{message.date}}:</div><pre>{{message.message}}</pre></li>
     </ul>
     <div v-show="numRemovedMessages > 0">
@@ -78,19 +78,4 @@ export default {
 </script>
 
 <style scoped>
-ul, li {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  float: left;
-}
-li { border-bottom: 1px dotted black; margin-bottom: 4px; padding-bottom: 4px;}
-li.internal {color: #999;}
-li.internal-error {color: #900;}
-li.internal-success {color: #090;}
-
-li div.date { float:left; margin-right: 3px;}
-li pre { margin:0; padding:0; float: left;}
-
 </style>

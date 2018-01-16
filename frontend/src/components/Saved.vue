@@ -1,8 +1,8 @@
 <template>
   <div>
     <h1>saved messages from new to old</h1>
-    <ul>
-      <li v-if="messages.length === 0"><i>no messages</i></li>
+    <ul class="messages">
+      <li v-if="messages.length === 0" class="internal"><i>no messages</i></li>
       <li v-for="message in messages">{{message}}</li>
     </ul>
     <button type="button" :disabled="offset == 0" @click="turnPage(-1)">&lt;&lt;</button>

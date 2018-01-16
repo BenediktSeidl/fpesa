@@ -72,4 +72,18 @@ h3 {border-bottom-width: 2px;}
 h4 {border-bottom-width: 1px;}
 h5 {border-bottom-width: 1px; border-bottom-style:dashed;}
 h6 {border-bottom-width: 1px; border-bottom-style:dotted;}
+
+ul.messages, ul.messages li {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  float: left;
+}
+ul.messages li { border-bottom: 1px dotted black; margin-bottom: 4px; padding-bottom: 4px;}
+ul.messages li.internal {color: #999;}
+ul.messages li.internal-error {color: #900;}
+ul.messages li.internal-success {color: #090;}
+ul.messages li div.date { float:left; margin-right: 3px;}
+ul.messages li pre { margin:0; padding:0; float: left;}
 </style>
