@@ -61,7 +61,8 @@ class TestMessage(TestCase):
         create_all()
         for i in range(97):
             message.message_post({'a': i})
-        result = message.message_get(None, 0, 10)
+        result = message.message_get(
+            {'paginationId': None, 'offset': 0, 'limit': 10})
         self.maxDiff = None
         self.assertEqual(
             {
@@ -74,10 +75,20 @@ class TestMessage(TestCase):
             result
         )
 
+    def test_get_string_parameters(self):
+        """ the webapp will send parameters as strings, because there are
+        no types for request paramters """
+        self.test_get()
+        result = message.message_get(
+            {'paginationId': None, 'offset': "0", 'limit': "10"})
+        self.assertEqual(result['offset'], 0)
+        self.assertEqual(result['limit'], 10)
+
     def test_get_with_empty_table(self):
         """ get messages if empty """
         create_all()
-        result = message.message_get(None, 0, 10)
+        result = message.message_get(
+            {'paginationId': None, 'offset': 0, 'limit': 10})
         self.assertEqual(
             {
                 'paginationId': 0,
@@ -92,7 +103,8 @@ class TestMessage(TestCase):
     def test_get_pagination_id(self):
         """ get 2 messages but with pagination id 90 """
         self.test_get()
-        result = message.message_get(90, 0, 2)
+        result = message.message_get(
+            {'paginationId': 90, 'offset': 0, 'limit': 2})
         self.assertEqual(
             {
                 'paginationId': 90,

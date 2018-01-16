@@ -26,22 +26,33 @@ def message_post(session, message_data):
 
 
 @with_session
-def message_get(session, pagination_id, offset, limit):
+def message_get(session, request_arguments):
     """
     Fetch messages from database, newest to oldest.
 
     :param sqlalchemy.orm.session.Session session: session object injected via
         :py:func:`fpesa.postgres.with_session` decorator.
-    :param int pagination_id: As new messages are inserted constantly it's
-        necessary to freeze the pagination in place, otherwise one could see
-        message twice when switching to the next page. The pagination_id is
-        provided with the first result of message_get
-    :param int offset: how many message should be skipped
-    :param int limit: how many messages should be returned (max: 100)
+
+    :param dict request_arguments: :py:func:dict with request parameters
+
+    # TODO: fix this docs
+
+        :param int pagination_id: As new messages are inserted constantly it's
+            necessary to freeze the pagination in place, otherwise one could see
+            message twice when switching to the next page. The pagination_id is
+            provided with the first result of message_get
+        :param int offset: how many message should be skipped
+        :param int limit: how many messages should be returned (max: 100)
+
     :rtype: dict
 
     TODO: explain dict structure
     """
+
+    pagination_id = request_arguments.get('paginationId', None)
+    offset = int(request_arguments['offset'])
+    limit = int(request_arguments['limit'])
+
     if session.query(Message).count() == 0:
         return {
             'paginationId': 0,
@@ -100,14 +111,9 @@ def message_get_worker():
     # TODO: c&p!
 
     def on_message(channel, method_frame, header_frame, body):
-
         request_arguments = json.loads(body.decode())['args']
 
-        pagination_id = request_arguments.get('paginationId', None)
-        offset = request_arguments['offset']
-        limit = request_arguments['limit']
-
-        response = message_get(pagination_id, offset, limit)
+        response = message_get(request_arguments)
 
         channel.publish(
             'RPC', header_frame.reply_to, json.dumps(response),
