@@ -74,6 +74,21 @@ class TestMessage(TestCase):
             result
         )
 
+    def test_get_with_empty_table(self):
+        """ get messages if empty """
+        create_all()
+        result = message.message_get(None, 0, 10)
+        self.assertEqual(
+            {
+                'paginationId': 0,
+                'offset': 0,
+                'limit': 10,
+                'total': 0,
+                'messages': [],
+            },
+            result
+        )
+
     def test_get_pagination_id(self):
         """ get 2 messages but with pagination id 90 """
         self.test_get()

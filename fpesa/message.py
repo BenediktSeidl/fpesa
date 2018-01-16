@@ -42,6 +42,15 @@ def message_get(session, pagination_id, offset, limit):
 
     TODO: explain dict structure
     """
+    if session.query(Message).count() == 0:
+        return {
+            'paginationId': 0,
+            'offset': offset,
+            'limit': limit,
+            'total': 0,
+            'messages': [],
+        }
+
     if pagination_id is None:
         # TODO: problem with no entries
         pagination_id = session.query(Message)\
