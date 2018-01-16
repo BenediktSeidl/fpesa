@@ -62,7 +62,11 @@ class Endpoint():
     async def request_handler(self, request):
         data = None
         if self.schema_req_data is not None:
-            data = await request.json()
+            try:
+                data = await request.json()
+            except json.JSONDecodeError as e:
+                raise web.HTTPInternalServerError(
+                    reason='Can not parse request body as JSON: ' + str(e))
             try:
                 jsonschema.validate(data, self.schema_req_data)
             except jsonschema.ValidationError as e:

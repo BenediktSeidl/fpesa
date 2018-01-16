@@ -59,6 +59,17 @@ class TestRestBridgeFF(AioHTTPTestCase):
         self.assertTrue('Additional properties are not allowed' in description)
 
     @unittest_run_loop
+    async def test_invalid_json(self):
+        """ check for reasonable error message on invalid json """
+        response = await self.client.request(
+            "POST", "/testing/", data="invalid json")
+        body = await response.json()
+        self.assertEqual(response.status, 500)
+        description = body['error'].pop('description')
+        self.assertEqual(body, {'error': {'code': 500}})
+        self.assertTrue('Can not parse ' in description)
+
+    @unittest_run_loop
     async def test_error_404(self):
         """ try to access not existing endpoint """
         response = await self.client.request("GET", "/does_not_exist/")
