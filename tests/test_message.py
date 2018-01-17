@@ -1,4 +1,6 @@
+import json
 from unittest import TestCase
+from unittest.mock import patch, MagicMock
 from contextlib import contextmanager
 import datetime
 
@@ -115,3 +117,30 @@ class TestMessage(TestCase):
             },
             result
         )
+
+    @patch('fpesa.message.message_get')
+    def _error_cb(self, message_get_mock, **kwargs):
+        message_get_mock.side_effect = Exception('Unexpected Exception')
+        channel = MagicMock()
+        method_frame = MagicMock()
+        method_frame.delivery_tag = 'ddelivery_tag'
+        header_frame = MagicMock()
+        header_frame.return_value = 'rreply_to'
+        header_frame.correlation_id = 'ccorrelation_id'
+        body = b'{"args": {}, "data": {}}'
+        message._message_get_worker_cb(
+            channel, method_frame, header_frame, body, **kwargs)
+        queue, reply_to, data, properties = channel.publish.call_args[0]
+        return json.loads(data)
+
+    def test_error_cb_production(self):
+        data = self._error_cb()
+        self.assertEqual(
+            data,
+            {'error': {'code': 500, 'description': 'Internal server error'}}
+        )
+
+    def test_error_cb_debugging(self):
+        data = self._error_cb(debug=True)
+        description = data['error']['description']
+        self.assertTrue('Unexpected Exception' in description, description)

@@ -38,7 +38,7 @@ def f_message_post(options):
 
 def f_message_get(options):
     from fpesa.message import message_get_worker
-    message_get_worker()
+    message_get_worker(options)
 
 
 def get_argument_parser():
@@ -81,6 +81,9 @@ def get_argument_parser():
 
     p_message_get = subparsers.add_parser(
         'message_get', help='run the worker to get messages from database')
+    p_message_get.add_argument(
+        '--debug', help='response with stacktraces on error',
+        action='store_true')
     p_message_get.set_defaults(func=f_message_get)
 
     return parser

@@ -4,6 +4,7 @@ message bus to database
 -----------------------
 """
 import json
+import traceback
 
 import pika
 
@@ -91,6 +92,10 @@ def message_post_worker():
     arrives on the message bus.
     """
     def on_message(channel, method_frame, header_frame, body):
+        # when an error occures, the message will not be acked, but the worker
+        # will exit. the worker will then be restarted by the supervisor and
+        # the problem will persist. but as the queue is persistant no messages
+        # get lost
         message_post(json.loads(body.decode())['data'])
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
@@ -106,27 +111,39 @@ def message_post_worker():
         connection.close()
 
 
-def message_get_worker():
-    """
-    """
-    # TODO: c&p!
-
-    def on_message(channel, method_frame, header_frame, body):
+def _message_get_worker_cb(
+        channel, method_frame, header_frame, body, debug=False):
+    # when an error occures the error should be sent to the client and the
+    # message should be acked anyway.
+    try:
         request_arguments = json.loads(body.decode())['args']
 
         response = message_get(request_arguments)
+    except Exception as e:
+        if not debug:
+            description = "Internal server error"
+        else:
+            description = "".join(traceback.format_exc())
+        response = {'error': {'code': 500, 'description': description}}
 
-        channel.publish(
-            'RPC', header_frame.reply_to, json.dumps(response),
-            pika.BasicProperties(correlation_id=header_frame.correlation_id)
-        )
+    channel.publish(
+        'RPC', header_frame.reply_to, json.dumps(response),
+        pika.BasicProperties(correlation_id=header_frame.correlation_id)
+    )
 
-        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+    channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
+
+def message_get_worker(options):
+    """
+    """
     create_all()
     connection = get_connection()
     channel = connection.channel()
-    channel.basic_consume(on_message, '/messages/:GET')
+    channel.basic_consume(
+        _message_get_worker_cb, '/messages/:GET',
+        arguments={'debug': options.debug}
+    )
     try:
         channel.start_consuming()
     except KeyboardInterrupt:
