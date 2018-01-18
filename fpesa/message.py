@@ -5,11 +5,15 @@ message bus to database
 """
 import json
 import traceback
+from functools import partial
+import logging
 
 import pika
 
 from fpesa.postgres import Message, with_session, create_all
 from fpesa.rabbitmq import get_connection
+
+logger = logging.getLogger(__name__)
 
 
 @with_session
@@ -119,7 +123,8 @@ def _message_get_worker_cb(
         request_arguments = json.loads(body.decode())['args']
 
         response = message_get(request_arguments)
-    except Exception as e:
+    except Exception:
+        logger.exception("Exception while handling message get")
         if not debug:
             description = "Internal server error"
         else:
@@ -141,8 +146,7 @@ def message_get_worker(options):
     connection = get_connection()
     channel = connection.channel()
     channel.basic_consume(
-        _message_get_worker_cb, '/messages/:GET',
-        arguments={'debug': options.debug}
+        partial(_message_get_worker_cb, debug=options.debug), '/messages/:GET',
     )
     try:
         channel.start_consuming()
