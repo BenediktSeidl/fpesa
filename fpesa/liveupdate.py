@@ -73,27 +73,49 @@ async def consume_messages_from_bus(loop):
         await queue.bind(exchange)
         logger.info('waiting for messages...')
 
-        async for message in queue:
-            with message.process():
-                for websocket in connections:
-                    try:
-                        await websocket.send(
-                                json.dumps(
-                                    json.loads(
-                                        message.body.decode()
-                                    )['data']
-                                ).encode()
-                            )
-                    except ConnectionClosed:
-                        connections.remove(websocket)  # don't wait until ping
-                        # finds this dead connection
-                        logger.info(
-                            'connection {} already closed'.format(websocket))
+        async with queue.iterator() as message_iterator:
+            async for message in message_iterator:
+                with message.process():
+                    for websocket in connections:
+                        try:
+                            await websocket.send(
+                                    json.dumps(
+                                        json.loads(
+                                            message.body.decode()
+                                        )['data']
+                                    ).encode()
+                                )
+                        except ConnectionClosed:
+                            connections.remove(websocket)
+                            # don't wait until ping finds this dead connection
+                            logger.info(
+                                'connection {} already closed'
+                                .format(websocket))
+
+
+async def websocket_server(stop, bind, port):
+    async with websockets.serve(liveupdate, bind, port):
+        await stop
 
 
 def main(options):
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        websockets.serve(liveupdate, options.bind, options.port))
-    loop.run_until_complete(consume_messages_from_bus(loop))
-    loop.run_forever()
+
+    stop = asyncio.Future()
+    server = loop.create_task(
+        websocket_server(stop, options.bind, options.port))
+    consume = loop.create_task(consume_messages_from_bus(loop))
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        logger.info("shutting down")
+    finally:
+        from concurrent.futures import CancelledError
+        stop.set_result(None)
+        consume.cancel()
+        try:
+            loop.run_until_complete(consume)
+        except CancelledError:
+            pass
+        loop.run_until_complete(server)
+    loop.close()
