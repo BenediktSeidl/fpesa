@@ -3,3 +3,4 @@
 /.cache
 /v/*
 __pycache__
+/.tox
