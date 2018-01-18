@@ -1,5 +1,10 @@
 # fpesa
 
+## Overview
+
+For getting an overview of the whole project, see
+[docs/overview.rst](docs/overview.rst)
+
 ## Developing
 
 *Instructions are tested with debian 9.1.0*
