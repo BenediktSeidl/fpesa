@@ -136,7 +136,7 @@ class TestLiveUpdateMessages(WebsocketsTestCase, RabbitMqTestCase):
         self.websocket_open_cb_close(self.send_message_callback)
 
         self.assertEqual(FakeWebsocket.send.mock.call_count, 1)
-        self.assertEqual(FakeWebsocket.send.mock.call_args[0][1], '"bodyy"')
+        self.assertEqual(FakeWebsocket.send.mock.call_args[0][1], b'"bodyy"')
 
     def test_websocket_removed_after_send_with_error(self):
         from fpesa.liveupdate import connections
