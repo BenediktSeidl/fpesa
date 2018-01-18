@@ -113,9 +113,23 @@ class Adapter():
 
         :param dict request_data: holds contents of request data
         :param dict request_args: holds contents of request arguments
+        :return: response
+        :rtype: dict
 
         Note that the request data and arguments are parsed via the schemas
         definied in the :class:`Endpoint` constructor
+
+        If the worker runs into an exception it hast to ansewer in the
+        following schema:
+
+            {
+                "error": {
+                    "description": <string>
+                }
+            }
+
+        If the response contains the key 'error', the status code of the rest
+        response will be set to 500. And the schema shown above will be asumed.
         """
         raise NotImplementedError()
 
@@ -220,7 +234,11 @@ class RequestResponseAdapter(Adapter):
                 # TODO: timeout!
                 with message.process():
                     if message.correlation_id == correlation_id:
-                        return json.loads(message.body.decode())
+                        result = json.loads(message.body.decode())
+                        if 'error' in result:
+                            raise web.HTTPInternalServerError(
+                                reason=result['error']['reason'])
+                        return result
 
 
 def json_error(code, description):

@@ -94,8 +94,12 @@ class TestRestBridgeRR(AioHTTPTestCase, ClearRabbitMQ):
             schema_req_args={'type': 'object', 'properties': {
                 'b': {'type': 'string'}}, 'additionalProperties': False})])
 
-    async def worker(self):
+    async def worker(self, return_error=False):
         """ dummy rpc worker that responses to RequestResponseAdapter """
+        if return_error:
+            body = b'{"error": {"description": "errror"}}'
+        else:
+            body = b'{"this is": "a response"}'
         connection = await rabbitmq.get_aio_connection(self.loop)
         async with connection:
             channel = await connection.channel()
@@ -110,7 +114,7 @@ class TestRestBridgeRR(AioHTTPTestCase, ClearRabbitMQ):
                     type=aio_pika.exchange.ExchangeType.DIRECT)
                 await response_exchange.publish(
                     aio_pika.Message(
-                        b'{"this is": "a response"}',
+                        body,
                         correlation_id=message.correlation_id,
                     ),
                     routing_key=message.reply_to
@@ -146,6 +150,13 @@ class TestRestBridgeRR(AioHTTPTestCase, ClearRabbitMQ):
     async def test_rr_simple_twice(self):
         await self._rr_simple()
         await self._rr_simple()
+
+    @unittest_run_loop
+    async def test_rr_server_error_status_code(self):
+        self.loop.create_task(self.worker(return_error=True))
+        response = await self.client.request(
+            "GET", "/testing/", params={'b': 'c'})
+        self.assertEqual(response.status, 500)
 
 
 # TODO: test generic exception and make sure they return a valid json!
