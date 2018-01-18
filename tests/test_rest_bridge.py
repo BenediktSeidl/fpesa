@@ -99,7 +99,7 @@ class TestRestBridgeRR(AioHTTPTestCase, ClearRabbitMQ):
         connection = await rabbitmq.get_aio_connection(self.loop)
         async with connection:
             channel = await connection.channel()
-            queue = await channel.declare_queue("/testing/:GET", durable=True)
+            queue = await channel.declare_queue("/testing/:GET")
             message = await queue.get()
             with message.process():
                 self.assertEqual(

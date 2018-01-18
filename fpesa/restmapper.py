@@ -186,7 +186,7 @@ class RequestResponseAdapter(Adapter):
             self.get_endpoint_name(),
             type=aio_pika.exchange.ExchangeType.DIRECT)
         queue = await self.channel.declare_queue(
-                self.get_endpoint_name(), durable=True)
+                self.get_endpoint_name())
         await queue.bind(self.exchange)
 
         # aio-pika includes rpc interface. not sure if worth it.
