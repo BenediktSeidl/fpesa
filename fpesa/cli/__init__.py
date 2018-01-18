@@ -31,14 +31,14 @@ def f_liveupdate(options):
     main(options)
 
 
-def f_message_post(options):
-    from fpesa.message import message_post_worker
-    message_post_worker()
+def f_messages_post(options):
+    from fpesa.message import messages_post_worker
+    messages_post_worker()
 
 
-def f_message_get(options):
-    from fpesa.message import message_get_worker
-    message_get_worker(options)
+def f_messages_get(options):
+    from fpesa.message import messages_get_worker
+    messages_get_worker(options)
 
 
 def get_argument_parser():
@@ -75,16 +75,16 @@ def get_argument_parser():
         default=8082, type=int)
     p_liveupdate.set_defaults(func=f_liveupdate)
 
-    p_message_post = subparsers.add_parser(
-        'message_post', help='run the worker to insert messages into database')
-    p_message_post.set_defaults(func=f_message_post)
+    p_messages_post = subparsers.add_parser(
+        'messages_post', help='run worker to insert messages into database')
+    p_messages_post.set_defaults(func=f_messages_post)
 
-    p_message_get = subparsers.add_parser(
-        'message_get', help='run the worker to get messages from database')
-    p_message_get.add_argument(
+    p_messages_get = subparsers.add_parser(
+        'messages_get', help='run worker to get messages from database')
+    p_messages_get.add_argument(
         '--debug', help='response with stacktraces on error',
         action='store_true')
-    p_message_get.set_defaults(func=f_message_get)
+    p_messages_get.set_defaults(func=f_messages_get)
 
     return parser
 

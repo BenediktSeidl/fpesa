@@ -90,7 +90,7 @@ def message_get(session, request_arguments):
     }
 
 
-def message_post_worker():
+def messages_post_worker():
     """
     worker that keeps calling :py:func:`message_post` for each message that
     arrives on the message bus.
@@ -143,7 +143,7 @@ def _message_get_worker_cb(
     channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
 
-def message_get_worker(options):
+def messages_get_worker(options):
     """
     """
     create_all()
