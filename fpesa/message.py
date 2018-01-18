@@ -11,7 +11,7 @@ import logging
 import pika
 
 from fpesa.postgres import Message, with_session, create_all
-from fpesa.rabbitmq import get_connection
+from fpesa.rabbitmq import open_connection
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ def messages_post_worker():
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
     create_all()
-    connection = get_connection()
+    connection = open_connection()
     channel = connection.channel()
     channel.basic_consume(on_message, '/messages/:POST')
     try:
@@ -147,7 +147,7 @@ def messages_get_worker(options):
     """
     """
     create_all()
-    connection = get_connection()
+    connection = open_connection()
     channel = connection.channel()
     channel.basic_consume(
         partial(_message_get_worker_cb, debug=options.debug), '/messages/:GET',

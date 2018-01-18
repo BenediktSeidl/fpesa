@@ -4,7 +4,7 @@ from unittest import TestCase
 import requests
 
 from fpesa.config import config
-from fpesa.rabbitmq import get_connection
+from fpesa.rabbitmq import open_connection
 
 
 def install_test_config():
@@ -36,7 +36,7 @@ class ClearRabbitMQ():
             'PUT', '/permissions/tests/guest',
             {'configure': '.*', 'write': '.*', 'read': '.*'})
 
-        self.connection = get_connection()
+        self.connection = open_connection()
 
 
 class RabbitMqTestCase(TestCase, ClearRabbitMQ):

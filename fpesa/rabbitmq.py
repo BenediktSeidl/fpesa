@@ -24,18 +24,6 @@ def open_connection():
     ))
 
 
-def get_connection():
-    """
-    get globally unique connection
-
-    .. deprecated:: 0.0.1
-    """
-    global _connection
-    if _connection is None:
-        _connection = open_connection()
-    return _connection
-
-
 async def get_aio_connection(loop=None):
     config_mq = config['rabbitmq']
     connection = await aio_pika.connect_robust(
