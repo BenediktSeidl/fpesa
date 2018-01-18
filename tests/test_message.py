@@ -12,11 +12,16 @@ from fpesa.config import config
 from fpesa.helper import get_engine
 from fpesa import message
 
+from common import RabbitMqTestCase
 from common import install_test_config
 
 
 install_test_config()
 Session.configure(bind=get_engine())  # now with test config
+
+
+class ExitException(Exception):
+    pass
 
 
 @contextmanager
@@ -144,3 +149,22 @@ class TestMessage(TestCase):
         data = self._error_cb(debug=True)
         description = data['error']['description']
         self.assertTrue('Unexpected Exception' in description, description)
+
+
+class TestWorker(RabbitMqTestCase):
+    @patch('pika.adapters.blocking_connection.BlockingChannel.queue_declare')
+    def test_worker_creates_queue_get(self, channel_queue_declare):
+        # mock start_consuming in order to not block the execution
+        channel_queue_declare.side_effect = ExitException('EXIT')
+        with self.assertRaises(ExitException):
+            message.messages_get_worker(MagicMock())
+        channel_queue_declare.assert_called_with('/messages/:GET')
+
+    @patch('pika.adapters.blocking_connection.BlockingChannel.queue_declare')
+    def test_worker_creates_queue_post(self, channel_queue_declare):
+        # mock start_consuming in order to not block the execution
+        channel_queue_declare.side_effect = ExitException('EXIT')
+        with self.assertRaises(ExitException):
+            message.messages_post_worker()
+        channel_queue_declare.assert_called_with(
+            '/messages/:POST', durable=True)

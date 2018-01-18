@@ -108,6 +108,7 @@ def messages_post_worker():
     create_all()
     connection = open_connection()
     channel = connection.channel()
+    channel.queue_declare('/messages/:POST', durable=True)
     channel.basic_consume(on_message, '/messages/:POST')
     try:
         channel.start_consuming()
@@ -149,6 +150,7 @@ def messages_get_worker(options):
     create_all()
     connection = open_connection()
     channel = connection.channel()
+    channel.queue_declare('/messages/:GET')
     channel.basic_consume(
         partial(_message_get_worker_cb, debug=options.debug), '/messages/:GET',
     )
