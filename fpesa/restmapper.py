@@ -1,5 +1,5 @@
 """
-.. _restmapper:
+.. _generic-restmapper:
 
 Generic rest to RabbitMQ Mapper
 ###############################

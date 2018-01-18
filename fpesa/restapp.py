@@ -3,7 +3,7 @@
 restapp
 -------
 
-concrete config for :ref:`restmapper`
+concrete config for :ref:`generic-restmapper`
 """
 import aiohttp
 
