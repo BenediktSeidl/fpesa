@@ -56,7 +56,7 @@ def message_get(session, request_arguments):
 
     pagination_id = request_arguments.get('paginationId', None)
     offset = int(request_arguments['offset'])
-    limit = int(request_arguments['limit'])
+    limit = min(100, int(request_arguments['limit']))
 
     if session.query(Message).count() == 0:
         return {

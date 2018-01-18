@@ -82,6 +82,16 @@ class TestMessage(TestCase):
             result
         )
 
+    def test_get_maximum_limit(self):
+        """ see if limit is clipped to 100 """
+        create_all()
+        for i in range(202):
+            message.message_post({'a': i})
+        result = message.message_get(
+            {'paginationId': None, 'offset': 0, 'limit': 200})
+        self.assertEqual(result['limit'], 100)
+        self.assertEqual(len(result['messages']), 100)
+
     def test_get_string_parameters(self):
         """ the webapp will send parameters as strings, because there are
         no types for request paramters """
