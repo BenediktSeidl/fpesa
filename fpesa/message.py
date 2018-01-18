@@ -96,6 +96,8 @@ def message_post_worker():
     arrives on the message bus.
     """
     def on_message(channel, method_frame, header_frame, body):
+        logger.info(
+            "message with delivery_tag={}".format(method_frame.delivery_tag))
         # when an error occures, the message will not be acked, but the worker
         # will exit. the worker will then be restarted by the supervisor and
         # the problem will persist. but as the queue is persistant no messages
@@ -119,6 +121,8 @@ def _message_get_worker_cb(
         channel, method_frame, header_frame, body, debug=False):
     # when an error occures the error should be sent to the client and the
     # message should be acked anyway.
+    logger.info(
+        "message with delivery_tag={}".format(method_frame.delivery_tag))
     try:
         request_arguments = json.loads(body.decode())['args']
 
