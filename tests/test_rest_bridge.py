@@ -6,6 +6,7 @@ import aio_pika
 
 from fpesa.restmapper import get_app, Endpoint, FireAndForgetAdapter
 from fpesa.restmapper import RequestResponseAdapter
+from fpesa import restapp
 from fpesa import rabbitmq
 
 from common import ClearRabbitMQ
@@ -19,6 +20,7 @@ logging.getLogger('aio_pika').setLevel(logging.WARNING)
 
 
 class TestRestBridgeFF(AioHTTPTestCase):
+    # TODO: add ClearRabbitMQ
     async def get_application(self):
         # used by AioHTTPTestCase to construct self.client
         return get_app([Endpoint(
@@ -146,5 +148,83 @@ class TestRestBridgeRR(AioHTTPTestCase, ClearRabbitMQ):
         await self._rr_simple()
 
 
-
 # TODO: test generic exception and make sure they return a valid json!
+
+
+class TestRestApp(AioHTTPTestCase, ClearRabbitMQ):
+    def setUp(self):
+        ClearRabbitMQ.setUp(self)
+        super().setUp()
+
+    async def get_application(self):
+        # used by AioHTTPTestCase to construct self.client
+        return get_app(restapp.get_endpoints())
+
+    async def _get_messages(self, params):
+        response = await self.client.request(
+            "GET", "/messages/", params=params)
+        return await response.json()
+
+    async def _post_messages(self, body):
+        response = await self.client.request(
+            "POST", "/messages/", json=body)
+        return await response.json()
+
+    def assertIn(self, needle, hay):
+        self.assertTrue(
+            needle in hay, "'{}'\nnot in\n'{}'".format(needle, hay))
+
+    @unittest_run_loop
+    async def test_post_messages_production(self):
+        """ check jsonschema validation of production environment """
+        error = (await self._post_messages(
+            'string'))['error']
+        self.assertEqual(error['code'], 500)
+        self.assertIn(
+            "'string' is not of type 'object'",
+            error['description'])
+
+    @unittest_run_loop
+    async def test_get_messages_production(self):
+        """ check jsonschema validation of production environment """
+        error = (await self._get_messages(
+            {}))['error']
+        self.assertEqual(error['code'], 500)
+        self.assertIn(
+            "'offset' is a required property",
+            error['description'])
+
+        error = (await self._get_messages(
+            {'offset': 1}))['error']
+        self.assertEqual(error['code'], 500)
+        self.assertIn(
+            "'limit' is a required property",
+            error['description'])
+
+        error = (await self._get_messages(
+            {'offset': 1, 'limit': 2, 'asd': 1}))['error']
+        self.assertEqual(error['code'], 500)
+        self.assertIn(
+            "Additional properties are not allowed ('asd' was unexpected)",
+            error['description'])
+
+        error = (await self._get_messages(
+            {'offset': 'zzz', 'limit': 2}))['error']
+        self.assertEqual(error['code'], 500)
+        self.assertIn(
+            "'zzz' does not match '^[0-9]+$'",
+            error['description'])
+
+        error = (await self._get_messages(
+            {'offset': 1, 'limit': 'zzz'}))['error']
+        self.assertEqual(error['code'], 500)
+        self.assertIn(
+            "'zzz' does not match '^[0-9]+$'",
+            error['description'])
+
+        error = (await self._get_messages(
+            {'offset': 1, 'limit': 2, 'paginationId': 'zzz'}))['error']
+        self.assertEqual(error['code'], 500)
+        self.assertIn(
+            "'zzz' does not match '^[0-9]+$'",
+            error['description'])

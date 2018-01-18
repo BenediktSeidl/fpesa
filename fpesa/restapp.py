@@ -20,15 +20,21 @@ def get_endpoints():
     return [
         Endpoint(
             '/messages/', 'POST', FireAndForgetAdapter(),
-            schema_req_data={  # TODO: XXX! adapt to test
-                'message': {'type': 'object'},
+            schema_req_data={
+                'type': 'object'
             },
         ),
         Endpoint(
             '/messages/', 'GET', RequestResponseAdapter(),
             schema_req_args={
-                'since': {'type': 'string', 'format': 'date-time'},
-                'limit': {'type': 'int', 'minimum': 0},
+                'type': 'object',
+                'additionalProperties': False,
+                'required': ['offset', 'limit'],
+                'properties': {
+                    'offset': {'type': 'string', 'pattern': '^[0-9]+$'},
+                    'limit': {'type': 'string', 'pattern': '^[0-9]+$'},
+                    'paginationId': {'type': 'string', 'pattern': '^[0-9]+$'},
+                },
             },
         )
     ]
