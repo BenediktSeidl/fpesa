@@ -23,6 +23,9 @@ services:
       - fpesa-frontend-static:/opt/fpesa/static/
       - ./dev/nginx/:/opt/fpesa/nginx/
     command: ['nginx', '-c', '/opt/fpesa/nginx/docker.conf']
+    depends_on:
+      - fpesa-restmapper
+      - fpesa-liveupdate
 
   fpesa-frontend-build:
     # build static files and put them into a volume that is also mounted into
@@ -44,18 +47,28 @@ services:
   fpesa-liveupdate:
     image: fpesa-base
     entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "liveupdate", "--bind=0.0.0.0"]
+    depends_on:
+      - rabbitmq
 
   fpesa-restmapper:
     image: fpesa-base
     entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "restmapper", "--bind=0.0.0.0"]
+    depends_on:
+      - rabbitmq
 
   fpesa-messages-get:
     image: fpesa-base
     entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "messages_get"]
+    depends_on:
+      - rabbitmq
+      - postgres
 
   fpesa-messages-post:
     image: fpesa-base
     entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "messages_post"]
+    depends_on:
+      - rabbitmq
+      - postgres
 
 volumes:
   fpesa-frontend-static:
