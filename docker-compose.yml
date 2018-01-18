@@ -17,6 +17,8 @@ services:
   nginx:
     image: nginx:1.13-alpine
     # https://hub.docker.com/_/nginx/
+    ports:
+      - 8099:80
     volumes:
       - fpesa-frontend-static:/opt/fpesa/static/
       - ./dev/nginx/:/opt/fpesa/nginx/
@@ -46,6 +48,14 @@ services:
   fpesa-restmapper:
     image: fpesa-base
     entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "restmapper", "--bind=0.0.0.0"]
+
+  fpesa-messages-get:
+    image: fpesa-base
+    entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "message_get"]
+
+  fpesa-messages-post:
+    image: fpesa-base
+    entrypoint: ["sh", "dev/wait_for_rabbitmq", "fpesa", "-v", "message_post"]
 
 volumes:
   fpesa-frontend-static:
