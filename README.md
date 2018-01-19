@@ -17,7 +17,7 @@ apt-get install git
 ```
 
 ``` bash
-git clone #TODO: add address
+git clone https://github.com/BenediktSeidl/fpesa.git
 cd fpesa
 ```
 
