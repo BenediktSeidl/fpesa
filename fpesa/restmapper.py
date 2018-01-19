@@ -10,7 +10,7 @@ request to the message broker. In order to not repeat the same code over and
 over again this simple bridge was created.
 
 For each rest endpoint you create a :class:`Endpoint`, put them into a list and
-call :func:`get_app` to get a :py:class:aiohttp.web.Application
+call :func:`get_app` to get a :py:class:`aiohttp.web.Application`
 """
 
 import json
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class Endpoint():
     """
-    Maps a rest endpoint to a exchange in rabbitmq.
+    Maps a rest endpoint to an exchange in rabbitmq.
 
     :param str path: rest endpoint path
     :param str method: allowed method
@@ -41,7 +41,7 @@ class Endpoint():
         parameters. please note that the request arguments are mapped into a
         simple dictionary, and both key and value are of the type string.
 
-    The name of the exchange consists of path and method seperated by a colon.
+    The name of the exchange is path and method seperated by a colon.
     """
     def __init__(
             self, path, method, adapter,
@@ -101,7 +101,7 @@ class Adapter():
     """
     async def init(self, endpoint):
         """
-        open channel with endpoint.rabbitmq_connection
+        open channel with :py:data:`Endpoint.rabbitmq_connection`
         """
         self.endpoint = endpoint
         self.channel = await endpoint.rabbitmq_connection.channel()
@@ -120,7 +120,7 @@ class Adapter():
         definied in the :class:`Endpoint` constructor
 
         If the worker runs into an exception it hast to ansewer in the
-        following schema:
+        following schema::
 
             {
                 "error": {
@@ -128,26 +128,34 @@ class Adapter():
                 }
             }
 
-        If the response contains the key 'error', the status code of the rest
-        response will be set to 500. And the schema shown above will be asumed.
+        If the response contains the key ``error`` the status code of the rest
+        response will be set to 500. And the schema shown above will be
+        assumed.
         """
         raise NotImplementedError()
 
     def get_endpoint_name(self):
+        """
+        :rtype: string
+        :returns: endpoint name
+        """
         return "{}:{}".format(
             self.endpoint.path,
             self.endpoint.method.upper()
         )
 
     async def close(self):
+        """
+        Closes the channel created in :py:func:`Adapter.init`.
+        """
         await self.channel.close()
 
 
 class FireAndForgetAdapter(Adapter):
     """
     Adapts a Rest-Call to a RabbitMQ message. The message is delivered to a
-    fanout exchange named `<path>:<method>`. The successful Rest response is a
-    empty object (`{}`)
+    fanout exchange named ``<path>:<method>``. The successful Rest response is
+    a empty object (``{}``)
     """
     async def init(self, endpoint):
         """
@@ -182,17 +190,22 @@ class FireAndForgetAdapter(Adapter):
 class RequestResponseAdapter(Adapter):
     """
     Adapts a Rest-Request to a RabbitMQ message, the response to the Rest-Call
-    with is defined by the response of the RabbitMQ message.
+    is defined by the response of the RabbitMQ message.
+
     To match the request and response on the message bus side, the request's
     properties includes two keys: `correlation_id` and `reply_to`. The response
     has to be sent to the exchange `RPC`. The `correlation_id` sent in the
     request has to be used as `routing_key` when sending the response to the
     exchange `RPC`. The `correlation_id` of the response holds the same value
     as the `correlation_id` of the request.
+
     The message is delivered to a exchange with type direct named
-    `<path>:<method>`.
+    ``<path>:<method>``.
     """
     async def init(self, endpoint):
+        """
+        initialize channel and exchange
+        """
         await super().init(endpoint)
 
         # create exchange for sending requests
@@ -213,6 +226,9 @@ class RequestResponseAdapter(Adapter):
         await self.response_queue.bind(self.response_exchange)
 
     async def adapt(self, request_data, request_args):
+        """
+        Send the message to RabbitMQ and return the response
+        """
         correlation_id = uuid.uuid4().hex.encode()
 
         await self.exchange.publish(
@@ -259,6 +275,11 @@ async def error_middleware(request, handler):
 
 
 def get_app(endpoints):
+    """
+    :param list(Endpoint) endpoints: Endpoints describing the mapper
+    :rtype: aiohttp.web.Application
+    :returns: an app configured as describes in endpoints
+    """
     app = web.Application(middlewares=[error_middleware])
 
     async def on_startup(app):

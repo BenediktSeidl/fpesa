@@ -21,12 +21,15 @@ Session = sessionmaker(bind=get_engine())
 
 class Message(Base):
     """
-    Wraps a JSON Message
+    Wraps a JSON Message into a database object.
     """
     __tablename__ = 'message'
     id = Column(Integer, primary_key=True)
+    """ internal database ID used to return messages in order """
     inserted = Column(DateTime, server_default=func.now())
+    """ date and time when this message was inserted """
     message = Column(JSONB)
+    """ the message itself """
 
     def __init__(self, message):
         self.message = message
@@ -36,7 +39,7 @@ def with_session(f):
     """
     Decorator that injects a Session object as the first paramter.
 
-    Commits and closes the session of no exception occures. When a exception
+    Commits and closes the session if no exception occures. When a exception
     occures, the session is rolled back.
     """
     @wraps(f)

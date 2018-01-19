@@ -15,6 +15,8 @@ _connection = None
 
 def open_connection():
     """
+    returns a open connection as defined in the :ref:`config`.
+
     :rtype: pika.adapters.blocking_connection.BlockingConnection
     """
     return pika.BlockingConnection(pika.ConnectionParameters(
@@ -25,6 +27,11 @@ def open_connection():
 
 
 async def get_aio_connection(loop=None):
+    """
+    returns a open connection as defined in the :ref:`config`.
+
+    :rytpe: :py:class:`aio_pika.Connection`
+    """
     config_mq = config['rabbitmq']
     connection = await aio_pika.connect_robust(
         host=config_mq['host'],

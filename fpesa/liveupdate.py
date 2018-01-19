@@ -94,6 +94,7 @@ async def consume_messages_from_bus(loop):
 
 
 async def websocket_server(stop, bind, port):
+    # wraps liveupdate in a stoppable server
     async with websockets.serve(liveupdate, bind, port):
         await stop
 

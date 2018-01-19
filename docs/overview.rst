@@ -114,10 +114,10 @@ Getting messages
   the response. rabbitmq does not natively support request response model, but
   it can be easily emulated as shown in the `RPC Tutorial`_. The restmapper
   uses the same principles. Therefore a exchange ``RPC`` is created. The
-  restmapper creates a randomly named queue and attaches it to this exchange.
+  restmapper creates a randomly named queue and attaches itself to this exchange.
   When putting the message into the exchange ``/messages/:GET`` the restmapper
   specifies the routing key the worker has to use when answering to this
-  request. The restmapper waits until the answer is provided in his queue ans
+  request. The restmapper waits until the answer is provided in his queue and
   responses the http request with this message.
 * **messages_get** connects to the queue name ``/messages/:GET`` that is
   connected to the exchange ``/messages/:GET``. If a message arrives it sends it
@@ -132,9 +132,9 @@ Scalability
 ~~~~~~~~~~~
 
 To provide true scalability all components used need to be run in parallel. The
-reverse proxy layer can be scaled by providing multiple IPs for a sinlge DNS
-entry. If the Server used is strong enough it's also possible to to configure
-nginx so round robin between different upstreams, so the restmapper and
+reverse proxy layer can be scaled by providing multiple IPs for a domain.
+If the Server is strong enough it's also possible to to configure
+nginx to round robin between different upstreams, so the restmapper and
 liveupdate web applications can be run in parallel per host. Both rabbitmq and
 postgresql support some kind of cluster mode, so both of them should not become
 a bottle neck. Last but not least it is supported to simply run multiple

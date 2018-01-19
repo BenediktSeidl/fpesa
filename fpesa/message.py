@@ -1,7 +1,7 @@
 """
------------------------
-message bus to database
------------------------
+------------------
+message bus worker
+------------------
 """
 import json
 import traceback
@@ -38,23 +38,31 @@ def message_get(session, request_arguments):
     :param sqlalchemy.orm.session.Session session: session object injected via
         :py:func:`fpesa.postgres.with_session` decorator.
 
-    :param dict request_arguments: :py:func:dict with request parameters
+    :param dict request_arguments: request parameters of the corresponding http
+        request. All entries are of the type ``str``. The keys of this
+        dictionary are:
 
-    # TODO: fix this docs
-
-        :param int pagination_id: As new messages are inserted constantly it's
-            necessary to freeze the pagination in place, otherwise one could
-            see message twice when switching to the next page. The
-            pagination_id is provided with the first result of message_get
-        :param int offset: how many message should be skipped
-        :param int limit: how many messages should be returned (max: 100)
+        * ``pagination_id`` As new messages are inserted constantly it's
+          necessary to freeze the pagination in place, otherwise one could
+          see message twice when switching to the next page. The
+          pagination_id is provided with the first result of message_get
+        * ``offset`` how many message should be skipped
+        * ``limit`` how many messages should be returned (max: 100)
 
     :rtype: dict
+    :returns: messages with additional meta information. The entries of the
+        returned dictionary are:
 
-    TODO: explain dict structure
+        * ``paginationId`` may be resent with the next request to make the
+          pagination immune against newly inserted messages
+        * ``offset`` as provided with the request
+        * ``limit`` as provided with the request
+        * ``total`` number of elements available with this ``paginationId``
+        * ``messages`` ``list`` of messages as inserted.
     """
 
     pagination_id = request_arguments.get('paginationId', None)
+    # TODO: parse pagination_id as integer?
     offset = int(request_arguments['offset'])
     limit = min(100, int(request_arguments['limit']))
 
@@ -146,6 +154,8 @@ def _message_get_worker_cb(
 
 def messages_get_worker(options):
     """
+    worker that keeps calling :py:func:`message_get` for each message that
+    arrives on the message bus.
     """
     create_all()
     connection = open_connection()

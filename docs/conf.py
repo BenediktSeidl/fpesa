@@ -182,4 +182,6 @@ intersphinx_mapping = {
     'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
     'websocket': ('https://websockets.readthedocs.io/en/stable/', None),
     'pika': ('http://pika.readthedocs.io/en/latest/', None),
+    'aio_pika': ('http://aio-pika.readthedocs.io/en/latest/', None),
+    'aiohttp': ('https://docs.aiohttp.org/en/stable/', None),
 }
