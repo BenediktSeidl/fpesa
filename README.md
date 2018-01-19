@@ -50,7 +50,7 @@ docker-compose up
 Wait until the static files are build and fpesa-frontend-build exits, then
 open http://127.0.0.1:8099/
 
-### Local Setup
+### Run fpesa locally
 
 ```bash
 # as root
