@@ -20,9 +20,12 @@ def open_connection():
     :rtype: pika.adapters.blocking_connection.BlockingConnection
     """
     return pika.BlockingConnection(pika.ConnectionParameters(
+        credentials=pika.credentials.PlainCredentials(
+            config['rabbitmq']['user'],
+            config['rabbitmq']['password'],
+        ),
         host=config['rabbitmq']['host'],
         virtual_host=config['rabbitmq']['virtual_host']
-        # TODO: respect user and password of config!
     ))
 
 
