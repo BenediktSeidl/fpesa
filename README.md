@@ -4,7 +4,7 @@ fpesa is a python3.5 and python3.6 compatible webapp that provides a restapi to
 save and receive messages and a websocket connection that receives live updates
 when a new message is saved.
 
-It comes with a simple web frontend that allows to test the features descibed
+It comes with a simple web frontend that allows to test the features described
 above.
 
 ## Overview
