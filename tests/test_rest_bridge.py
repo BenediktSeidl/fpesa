@@ -19,8 +19,11 @@ logging.getLogger('pika').setLevel(logging.WARNING)
 logging.getLogger('aio_pika').setLevel(logging.WARNING)
 
 
-class TestRestBridgeFF(AioHTTPTestCase):
-    # TODO: add ClearRabbitMQ
+class TestRestBridgeFF(AioHTTPTestCase, ClearRabbitMQ):
+    def setUp(self):
+        ClearRabbitMQ.setUp(self)
+        super().setUp()
+
     async def get_application(self):
         # used by AioHTTPTestCase to construct self.client
         return get_app([Endpoint(
