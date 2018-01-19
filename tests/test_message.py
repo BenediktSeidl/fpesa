@@ -82,6 +82,15 @@ class TestMessage(TestCase):
             result
         )
 
+    def test_parse_pagination_id(self):
+        """ check if paginationID is parsed to int """
+        create_all()
+        for i in range(7):
+            message.message_post({'a': i})
+        result = message.message_get(
+            {'paginationId': '12', 'offset': 0, 'limit': 10})
+        self.assertEqual(result['paginationId'], 12)
+
     def test_get_maximum_limit(self):
         """ see if limit is clipped to 100 """
         create_all()

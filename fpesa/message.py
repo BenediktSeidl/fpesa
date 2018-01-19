@@ -62,7 +62,8 @@ def message_get(session, request_arguments):
     """
 
     pagination_id = request_arguments.get('paginationId', None)
-    # TODO: parse pagination_id as integer?
+    if pagination_id is not None:
+        pagination_id = int(pagination_id)
     offset = int(request_arguments['offset'])
     limit = min(100, int(request_arguments['limit']))
 
