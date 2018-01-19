@@ -68,7 +68,7 @@ export default {
       var intervalID = setInterval(function () {
         self.$http.post('/api/v1/messages/', {'multiple': true, 'i': i})
         i += 1
-        if (i > 100) {
+        if (i >= 100) {
           clearInterval(intervalID)
         }
       }, 10)
