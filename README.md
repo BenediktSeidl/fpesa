@@ -109,25 +109,25 @@ cd dev/nginx
 ./run.sh
 ```
 
-###### Websocket Server
+##### Websocket Server
 
 ```
 ./v/bin/fpesa -v liveupdate
 ```
 
-###### Restapi
+##### Restapi
 
 ```
 ./v/bin/fpesa -v restmapper
 ```
 
-###### Worker for ingesting messages
+##### Worker for ingesting messages
 
 ```
 ./v/bin/fpesa -v messages_post
 ```
 
-###### Worker for emitting messages
+##### Worker for emitting messages
 
 ```
 ./v/bin/fpesa -v messages_get --debug
