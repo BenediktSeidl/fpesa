@@ -53,13 +53,29 @@ class Endpoint():
         self.schema_req_args = schema_req_args
 
     async def close(self):
+        """
+        adapter may open channles that needs to be closed
+        """
         await self.adapter.close()
 
     async def set_rabbitmq_connection(self, rabbitmq_connection):
+        """
+        hand in the rabbitmq connection
+        """
         self.rabbitmq_connection = rabbitmq_connection
         await self.adapter.init(self)
 
     async def request_handler(self, request):
+        """
+        parses the request according to ``schema_req_data`` and
+        ``schema_req_args``.
+
+        :param aiohttp.web.Request request: HTTP request
+        :returns: http response
+        :rtype: aiohttp.web.Response
+
+        If it can not be parsed returns an error message.
+        """
         data = None
         if self.schema_req_data is not None:
             try:
@@ -216,7 +232,7 @@ class RequestResponseAdapter(Adapter):
                 self.get_endpoint_name())
         await queue.bind(self.exchange)
 
-        # aio-pika includes rpc interface. not sure if worth it.
+        # TODO: aio-pika includes rpc interface. not sure if worth it.
 
         # create exchange for getting a response
         self.response_exchange = await self.channel.declare_exchange(

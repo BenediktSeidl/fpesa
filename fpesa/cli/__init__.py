@@ -53,7 +53,7 @@ def get_argument_parser():
 
     parser.set_defaults(func=lambda options: parser.print_help())
 
-    subparsers = parser.add_subparsers(help='sub-command help')
+    subparsers = parser.add_subparsers()
 
     p_restmapper = subparsers.add_parser(
         'restmapper', help='run the rest to rabbitmp mapper')

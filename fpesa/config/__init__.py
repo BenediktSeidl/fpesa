@@ -27,6 +27,7 @@ with open(os.path.join(os.path.dirname(__file__), 'default.cfg')) as fo:
 
 additional_config = config.read(["fpesa.cfg"])
 if additional_config:
+    # TODO. provide absolute path
     logging.info("read additional configs: {}".format(additional_config))
 else:
     logging.info("no additional configs found")

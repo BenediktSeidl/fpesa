@@ -76,7 +76,6 @@ def message_get(session, request_arguments):
         }
 
     if pagination_id is None:
-        # TODO: problem with no entries
         pagination_id = session.query(Message)\
             .order_by(Message.id.desc())\
             .limit(1)\

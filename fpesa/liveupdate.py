@@ -76,6 +76,7 @@ async def consume_messages_from_bus(loop):
         async with queue.iterator() as message_iterator:
             async for message in message_iterator:
                 with message.process():
+                    # TODO: add logging to match message worker
                     for websocket in connections:
                         try:
                             await websocket.send(
